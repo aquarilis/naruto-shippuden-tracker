@@ -31,34 +31,28 @@ body {
   padding: 16px 14px 32px;
 }
 
-/* ── Header with dual logos ── */
+/* ── Header 3 zones ── */
 .header {
-  position: relative;
-  min-height: 100px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
   align-items: center;
-  justify-content: center;
   margin-bottom: 20px;
+  min-height: 100px;
 }
 
 .header-logo-left {
-  position: absolute;
-  left: 0;
-  width: 100px;
-  height: auto;
-}
-
-a:has(.header-logo-left) {
-  position: absolute;
-  left: 0;
-  line-height: 0;
+  height: 100px;
+  width: auto;
 }
 
 .header-logo-right {
-  position: absolute;
-  right: 0;
-  width: 100px;
-  height: auto;
+  height: 100px;
+  width: auto;
+  justify-self: end;
+}
+
+.header-center {
+  text-align: center;
 }
 
 .header h1 {
@@ -193,8 +187,8 @@ select:focus { border-color: var(--orange); }
 
 <div id="selectionScreen">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
-    <div>
+    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <div class="header-center">
       <h1>Sélection du Personnage</h1>
       <div class="sub" id="pageSubtitle">Choix des combattants</div>
     </div>
@@ -271,7 +265,7 @@ function getGameData() {
 }
 
 function getTeamLogoPath(team) {
-  return team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
+  return team === 'alliance' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
 }
 
 function isAvailable(c, currentTurn) {

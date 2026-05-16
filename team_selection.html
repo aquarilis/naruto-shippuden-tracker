@@ -33,26 +33,26 @@ body {
 
 /* ── Header ── */
 .header {
-  text-align: center;
-  margin-bottom: 20px;
-  position: relative;
-  min-height: 80px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
   align-items: center;
-  justify-content: center;
+  margin-bottom: 20px;
+  min-height: 100px;
 }
 
 .header-logo-left {
-  position: absolute;
-  left: 0;
-  width: 60px;
-  height: auto;
+  height: 100px;
+  width: auto;
 }
 
-a:has(.header-logo-left) {
-  position: absolute;
-  left: 0;
-  line-height: 0;
+.header-logo-right {
+  height: 100px;
+  width: auto;
+  justify-self: end;
+}
+
+.header-center {
+  text-align: center;
 }
 
 .header h1 {
@@ -68,12 +68,17 @@ a:has(.header-logo-left) {
 }
 
 /* ── Cards ── */
+.cards-row {
+  display: flex;
+  gap: 12px;
+}
+
 .card {
+  flex: 1;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 18px 16px;
-  margin-bottom: 14px;
+  padding: 18px 12px;
   cursor: pointer;
   transition: transform 0.08s, border-color 0.12s;
   text-align: center;
@@ -84,9 +89,10 @@ a:has(.header-logo-left) {
 }
 
 .card img {
-  width: 140px;
-  height: auto;
+  width: auto;
+  height: 120px;
   margin-bottom: 12px;
+  object-fit: contain;
 }
 
 .card-label {
@@ -107,18 +113,23 @@ a:has(.header-logo-left) {
 <body>
 
 <div class="header">
-  <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
-  <h1>Choix du Camp</h1>
+  <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+  <div class="header-center">
+    <h1>Choix du Camp</h1>
+  </div>
+  <div></div>
 </div>
 
-<div class="card" onclick="selectTeam('alliance')">
-  <img src="img/alliance_shinobi.png" alt="Alliance Shinobi">
-  <div class="card-title">Alliance Shinobi</div>
-</div>
+<div class="cards-row">
+  <div class="card" onclick="selectTeam('alliance')">
+    <img src="img/alliance_shinobi.svg" alt="Alliance Shinobi">
+    <div class="card-title">Alliance Shinobi</div>
+  </div>
 
-<div class="card" onclick="selectTeam('akatsuki')">
-  <img src="img/akatsuki.png" alt="Akatsuki">
-  <div class="card-title">Akatsuki</div>
+  <div class="card" onclick="selectTeam('akatsuki')">
+    <img src="img/akatsuki.svg" alt="Akatsuki">
+    <div class="card-title">Akatsuki</div>
+  </div>
 </div>
 
 <script>

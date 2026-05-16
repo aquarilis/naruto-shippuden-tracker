@@ -32,10 +32,30 @@ body {
 }
 
 /* ── Header ── */
+/* ── Header 3 zones ── */
 .header {
-  text-align: center;
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  align-items: center;
   margin-bottom: 20px;
+  min-height: 100px;
 }
+
+.header-logo-left {
+  height: 100px;
+  width: auto;
+}
+
+.header-logo-right {
+  height: 100px;
+  width: auto;
+  justify-self: end;
+}
+
+.header-center {
+  text-align: center;
+}
+
 .header h1 {
   font-size: 2rem;
   font-weight: 900;
@@ -53,43 +73,6 @@ body {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   margin-top: 2px;
-}
-
-.header-logo {
-  max-width: 280px;
-  width: 100%;
-  margin-bottom: 4px;
-}
-
-.header-logo-left {
-  position: absolute;
-  left: 0;
-  width: 100px;
-  height: auto;
-}
-
-a:has(.header-logo-left) {
-  position: absolute;
-  left: 0;
-  line-height: 0;
-}
-
-.header-logo-right {
-  position: absolute;
-  right: 0;
-  width: 100px;
-  height: auto;
-}
-
-.combat-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-  position: relative;
-}
-
-#combatScreen {
 }
 
 /* ── Cards ── */
@@ -447,9 +430,11 @@ input:focus { border-color: var(--orange); }
 
 <!-- ══════════════ COMBAT ══════════════ -->
 <div id="combatScreen" class="hidden">
-  <div class="header combat-header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
-    <h1 id="combatTitle">Combat</h1>
+  <div class="header">
+    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <div class="header-center">
+      <h1 id="combatTitle">Combat</h1>
+    </div>
     <img id="teamLogo" src="" alt="Team" class="header-logo-right">
   </div>
 
@@ -509,8 +494,8 @@ input:focus { border-color: var(--orange); }
 <!-- ══════════════ RECORD SCREEN ══════════════ -->
 <div id="recordScreen" class="hidden">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
-    <div>
+    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <div class="header-center">
       <h1>Tour Terminé</h1>
       <div class="sub">Enregistrement du résultat</div>
     </div>
@@ -529,8 +514,12 @@ input:focus { border-color: var(--orange); }
 <!-- ══════════════ END SCREEN ══════════════ -->
 <div id="endScreen" class="hidden">
   <div class="header">
-    <h1>Naruto</h1>
-    <div class="sub">Fin du Combat</div>
+    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <div class="header-center">
+      <h1>Naruto</h1>
+      <div class="sub">Fin du Combat</div>
+    </div>
+    <div></div>
   </div>
   <div class="card" style="text-align:center; padding: 28px 20px;">
     <div class="end-icon" id="endIcon"></div>
@@ -819,7 +808,7 @@ function initFromURL() {
   }
 
   // Set team logo
-  const teamLogoPath = team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
+  const teamLogoPath = team === 'alliance' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
   const teamLogoElem = document.getElementById('teamLogo');
   if (teamLogoElem) teamLogoElem.src = teamLogoPath;
 

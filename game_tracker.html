@@ -31,34 +31,28 @@ body {
   padding: 16px 14px 32px;
 }
 
-/* ── Header with dual logos ── */
+/* ── Header 3 zones ── */
 .header {
-  position: relative;
-  min-height: 100px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
   align-items: center;
-  justify-content: center;
   margin-bottom: 24px;
+  min-height: 100px;
 }
 
 .header-logo-left {
-  position: absolute;
-  left: 0;
-  width: 100px;
-  height: auto;
-}
-
-a:has(.header-logo-left) {
-  position: absolute;
-  left: 0;
-  line-height: 0;
+  height: 100px;
+  width: auto;
 }
 
 .header-logo-right {
-  position: absolute;
-  right: 0;
-  width: 100px;
-  height: auto;
+  height: 100px;
+  width: auto;
+  justify-self: end;
+}
+
+.header-center {
+  text-align: center;
 }
 
 .header h1 {
@@ -281,10 +275,10 @@ a:has(.header-logo-left) {
 
 <div id="gameScreen">
 <div class="header">
-  <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
-  <div>
+  <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+  <div class="header-center">
     <h1>Suivi de Partie</h1>
-    <div id="teamName" style="font-size:0.8rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; text-align:center; margin-top:4px;"></div>
+    <div id="teamName" style="font-size:0.8rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;"></div>
   </div>
   <img id="teamLogo" src="" alt="Team" class="header-logo-right">
 </div>
@@ -321,7 +315,7 @@ function getGameData() {
 }
 
 function getTeamLogoPath(team) {
-  return team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
+  return team === 'alliance' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
 }
 
 function renderGameTracker() {
