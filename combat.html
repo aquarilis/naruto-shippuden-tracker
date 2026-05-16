@@ -332,6 +332,77 @@ input:focus { border-color: var(--orange); }
 }
 .modal-body strong { color: var(--text); }
 
+/* ── Action Modal ── */
+.action-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px 14px 32px;
+  animation: slideUp 0.2s ease-out;
+}
+
+.action-modal-overlay.hidden {
+  display: none;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.action-modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px 18px 0 0;
+  max-width: 400px;
+  width: 100%;
+  overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  background: var(--card2);
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.modal-header h2 {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--text);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.modal-content {
+  padding: 18px 16px;
+}
+
+.modal-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.modal-footer .btn {
+  margin: 0;
+}
+
 /* ── End screen ── */
 #endScreen {
   text-align: center;
@@ -404,43 +475,8 @@ input:focus { border-color: var(--orange); }
   </div>
 
   <!-- Turn inputs -->
-  <div class="card" id="actionCard">
-    <div class="card-label">Action <span id="actionLabel">1</span> / 3 — Saisir les effets</div>
-
-    <div class="stepper-wrap chakra-wrap">
-      <label><span class="icon">💙</span> Coût en chakra de la carte action</label>
-      <div class="stepper">
-        <button onclick="step('inputChakra', -1)">−</button>
-        <input type="number" id="inputChakra" value="0" min="0" inputmode="numeric">
-        <button onclick="step('inputChakra', 1)">+</button>
-      </div>
-    </div>
-    <div class="warn" id="chakraWarn">⚠️ Chakra insuffisant — vous ne pouvez pas jouer cette technique</div>
-
-    <div class="stepper-wrap hp-wrap">
-      <label><span class="icon">❤️</span> Dégâts reçus</label>
-      <div class="stepper">
-        <button onclick="step('inputDmg', -1)">−</button>
-        <input type="number" id="inputDmg" value="0" min="0" inputmode="numeric">
-        <button onclick="step('inputDmg', 1)">+</button>
-      </div>
-    </div>
-
-    <div id="healSection" class="hidden">
-      <div class="stepper-wrap heal-wrap">
-        <label><span class="icon">💚</span> PV récupérés (carte soin)</label>
-        <div class="stepper">
-          <button onclick="step('inputHeal', -1)">−</button>
-          <input type="number" id="inputHeal" value="0" min="0" inputmode="numeric">
-          <button onclick="step('inputHeal', 1)">+</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="heal-toggle" id="healToggle" onclick="toggleHeal()">+ Utiliser une carte soin</div>
-
-    <button class="btn btn-orange" onclick="confirmAction()">Valider l'action →</button>
-  </div>
+  <!-- Action Button -->
+  <button class="btn btn-orange" onclick="openActionModal()" style="margin-bottom: 14px;">Saisir action</button>
 
   <!-- Log -->
   <div class="card">
@@ -450,6 +486,7 @@ input:focus { border-color: var(--orange); }
 
   <button class="btn btn-ghost" onclick="resetGame()" style="margin-top:4px;">↺ Nouveau combat</button>
 </div>
+
 
 <!-- ══════════════ RECORD SCREEN ══════════════ -->
 <div id="recordScreen" class="hidden">
@@ -501,6 +538,8 @@ input:focus { border-color: var(--orange); }
 let G = {};
 
 function startCombatWithParams(name, maxHP, maxChakra) {
+  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra });
+
   G = {
     name,
     maxHP,
@@ -512,25 +551,18 @@ function startCombatWithParams(name, maxHP, maxChakra) {
     log: []
   };
 
+  console.log('G initialized:', G);
+
   document.getElementById('log').innerHTML = '';
   show('combatScreen');
   hide('endScreen');
   hide('roundOverlay');
+  hide('recordScreen');
+  hide('actionModal');
+
+  console.log('About to call renderCombat');
   renderCombat();
-}
-
-function initFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  const name = params.get('name') || 'Ninja';
-  const hp = parseInt(params.get('hp')) || 0;
-  const chakra = parseInt(params.get('chakra')) || 0;
-
-  if (hp <= 0 || chakra <= 0) {
-    window.location.href = 'setup.html?error=invalid';
-    return;
-  }
-
-  startCombatWithParams(name, hp, chakra);
+  console.log('renderCombat completed');
 }
 
 // ── Render ─────────────────────────────────────────────
@@ -541,16 +573,20 @@ function renderCombat() {
   document.getElementById('actionLabel').textContent = G.action;
 
   // HP
+  console.log('Setting HP:', G.hp, '/', G.maxHP);
   document.getElementById('dispHP').textContent = G.hp;
   document.getElementById('dispMaxHP').textContent = G.maxHP;
   document.getElementById('barHP').style.width = pct(G.hp, G.maxHP) + '%';
+  console.log('dispHP element value:', document.getElementById('dispHP').textContent);
 
   // Chakra
+  console.log('Setting Chakra:', G.chakra, '/', G.maxChakra);
   document.getElementById('dispChakra').textContent = G.chakra;
   document.getElementById('dispMaxChakra').textContent = G.maxChakra;
   // Bar: relative to maxChakra, capped at 100% visually
   const chakraPct = Math.min(100, pct(G.chakra, G.maxChakra));
   document.getElementById('barChakra').style.width = chakraPct + '%';
+  console.log('dispChakra element value:', document.getElementById('dispChakra').textContent);
 
   // Pips
   renderPips('roundPips', 3, G.round);
@@ -591,6 +627,8 @@ function resetInputs() {
 
 // ── Action logic ─────────────────────────────────────────
 function confirmAction() {
+  closeActionModal();
+
   const chakraSpent = Math.max(0, parseInt(document.getElementById('inputChakra').value) || 0);
   const dmg         = Math.max(0, parseInt(document.getElementById('inputDmg').value) || 0);
   const heal        = Math.max(0, parseInt(document.getElementById('inputHeal').value) || 0);
@@ -698,6 +736,14 @@ function toggleHeal() {
   t.textContent = hidden ? '+ Utiliser une carte soin' : '− Annuler le soin';
 }
 
+function openActionModal() {
+  document.getElementById('actionModal').classList.remove('hidden');
+}
+
+function closeActionModal() {
+  document.getElementById('actionModal').classList.add('hidden');
+}
+
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -725,31 +771,33 @@ function resetGame() {
 }
 
 function initFromURL() {
+  console.log('initFromURL called');
   const params = new URLSearchParams(window.location.search);
   const team = params.get('team') || null;
   const name = params.get('name') || 'Ninja';
   const hp = parseInt(params.get('hp')) || 0;
   const chakra = parseInt(params.get('chakra')) || 0;
 
-  // Verify game session exists
-  const gameData = JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
-  if (!team || !gameData.team) {
+  console.log('URL params:', { team, name, hp, chakra });
+
+  // If no team or hp/chakra invalid, redirect
+  if (!team || hp <= 0 || chakra <= 0) {
+    console.log('Invalid params, redirecting to index');
     window.location.href = 'index.html';
     return;
   }
 
-  if (hp <= 0 || chakra <= 0) {
-    window.location.href = 'character_selection.html?error=invalid&team=' + team;
-    return;
-  }
+  console.log('Params valid, setting up team logo');
 
   // Set team logo
   const teamLogoPath = team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
   const teamLogoElem = document.getElementById('teamLogo');
   if (teamLogoElem) {
     teamLogoElem.src = teamLogoPath;
+    console.log('Team logo set to:', teamLogoPath);
   }
 
+  console.log('Calling startCombatWithParams');
   // Initialize combat
   startCombatWithParams(name, hp, chakra);
 }
@@ -757,5 +805,53 @@ function initFromURL() {
 // Initialize from URL parameters on page load
 window.addEventListener('load', initFromURL);
 </script>
-</body>
+
+<!-- ══════════════ ACTION INPUT MODAL ══════════════ -->
+<div id="actionModal" class="hidden action-modal-overlay">
+  <div class="action-modal">
+    <div class="modal-header">
+      <h2>Saisir l'action</h2>
+      <div style="font-size: 0.75rem; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px;">Action <span id="actionLabel">1</span> / 3</div>
+    </div>
+
+    <div class="modal-content">
+      <div class="stepper-wrap chakra-wrap">
+        <label><span class="icon">💙</span> Coût en chakra de la carte action</label>
+        <div class="stepper">
+          <button onclick="step('inputChakra', -1)">−</button>
+          <input type="number" id="inputChakra" value="0" min="0" inputmode="numeric">
+          <button onclick="step('inputChakra', 1)">+</button>
+        </div>
+      </div>
+      <div class="warn" id="chakraWarn">⚠️ Chakra insuffisant — vous ne pouvez pas jouer cette technique</div>
+
+      <div class="stepper-wrap hp-wrap">
+        <label><span class="icon">❤️</span> Dégâts reçus</label>
+        <div class="stepper">
+          <button onclick="step('inputDmg', -1)">−</button>
+          <input type="number" id="inputDmg" value="0" min="0" inputmode="numeric">
+          <button onclick="step('inputDmg', 1)">+</button>
+        </div>
+      </div>
+
+      <div id="healSection" class="hidden">
+        <div class="stepper-wrap heal-wrap">
+          <label><span class="icon">💚</span> PV récupérés (carte soin)</label>
+          <div class="stepper">
+            <button onclick="step('inputHeal', -1)">−</button>
+            <input type="number" id="inputHeal" value="0" min="0" inputmode="numeric">
+            <button onclick="step('inputHeal', 1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="heal-toggle" id="healToggle" onclick="toggleHeal()">+ Utiliser une carte soin</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeActionModal()">Annuler</button>
+      <button class="btn btn-orange" onclick="confirmAction()">Valider l'action →</button>
+    </div>
+  </div>
+</div>
 </html>
