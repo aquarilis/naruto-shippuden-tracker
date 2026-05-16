@@ -375,7 +375,8 @@ function startCombat() {
     hp: selectedCharacter.hp,
     chakra: totalChakra,
     opponent: selectedOpponent.name,
-    opponentXp: selectedOpponent.xp ?? 0
+    opponentXp: selectedOpponent.xp ?? 0,
+    playerImage: selectedCharacter.roster_image ?? ''
   });
 
   window.location.href = `combat.html?${params.toString()}`;

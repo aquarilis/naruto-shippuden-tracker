@@ -293,27 +293,34 @@ body { padding: 16px 14px 32px; }
     </div>
   </div>
 
-  <!-- Stats -->
-  <div class="card">
-    <div class="stat">
-      <div class="stat-head">
-        <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
-        <div>
-          <span class="stat-num" id="dispHP">–</span>
-          <span class="stat-max"> / <span id="dispMaxHP">–</span></span>
+  <!-- Stats + Image side by side -->
+  <div style="display:flex; gap:10px; align-items:stretch; margin-bottom:14px;">
+    <div class="card" style="flex:1; margin-bottom:0;">
+      <div class="stat">
+        <div class="stat-head">
+          <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+          <div>
+            <span class="stat-num" id="dispHP">–</span>
+            <span class="stat-max"> / <span id="dispMaxHP">–</span></span>
+          </div>
         </div>
+        <div class="bar-track"><div class="bar-fill bar-hp" id="barHP"></div></div>
       </div>
-      <div class="bar-track"><div class="bar-fill bar-hp" id="barHP"></div></div>
+      <div class="stat">
+        <div class="stat-head">
+          <div class="stat-name"><div class="dot dot-chakra"></div>Chakra</div>
+          <div>
+            <span class="stat-num" id="dispChakra">–</span>
+            <span class="stat-max"> / <span id="dispMaxChakra">–</span></span>
+          </div>
+        </div>
+        <div class="bar-track"><div class="bar-fill bar-chakra" id="barChakra"></div></div>
+      </div>
     </div>
-    <div class="stat">
-      <div class="stat-head">
-        <div class="stat-name"><div class="dot dot-chakra"></div>Chakra</div>
-        <div>
-          <span class="stat-num" id="dispChakra">–</span>
-          <span class="stat-max"> / <span id="dispMaxChakra">–</span></span>
-        </div>
+    <div id="playerImageWrap" style="display:none; align-self:stretch;">
+      <div class="card" style="margin-bottom:0; padding:8px; height:100%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">
+        <img id="playerImage" src="" alt="" style="width:auto; max-height:100%; border-radius:8px; display:block;">
       </div>
-      <div class="bar-track"><div class="bar-fill bar-chakra" id="barChakra"></div></div>
     </div>
   </div>
 
@@ -387,8 +394,8 @@ body { padding: 16px 14px 32px; }
 // ── State ──────────────────────────────────────────────
 let G = {};
 
-function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp) {
-  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent, opponentXp });
+function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, playerImage) {
+  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent, opponentXp, playerImage });
 
   G = {
     name,
@@ -398,6 +405,7 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp) {
     chakra: maxChakra,
     opponent: opponent || null,
     opponentXp: opponentXp || 0,
+    playerImage: playerImage || null,
     round: 1,
     action: 1,
     log: []
@@ -420,6 +428,16 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp) {
 // ── Render ─────────────────────────────────────────────
 function renderCombat() {
   document.getElementById('combatTitle').textContent = G.opponent ? `${G.name} vs. ${G.opponent}` : G.name;
+
+  // Player image
+  const imgWrap = document.getElementById('playerImageWrap');
+  const imgEl = document.getElementById('playerImage');
+  if (G.playerImage) {
+    imgEl.src = `img/roster/${G.playerImage}`;
+    imgWrap.style.display = 'flex';
+  } else {
+    imgWrap.style.display = 'none';
+  }
   document.getElementById('labelRounds').textContent = `Rounds ${G.round}/3`;
   document.getElementById('labelActions').textContent = `Action ${G.action}/3`;
   document.getElementById('actionLabel').textContent = G.action;
@@ -666,6 +684,7 @@ function initFromURL() {
   const chakra = parseInt(params.get('chakra')) || 0;
   const opponent = params.get('opponent') || null;
   const opponentXp = parseInt(params.get('opponentXp')) || 0;
+  const playerImage = params.get('playerImage') || null;
 
   const gameData = JSON.parse(sessionStorage.getItem('gameData')) || {};
   const team = gameData.team || null;
@@ -684,7 +703,7 @@ function initFromURL() {
   const titleElem = document.getElementById('combatTitle');
   if (titleElem) titleElem.textContent = opponent ? `${name} vs. ${opponent}` : name;
 
-  startCombatWithParams(name, hp, chakra, opponent, opponentXp);
+  startCombatWithParams(name, hp, chakra, opponent, opponentXp, playerImage);
 }
 
 // Initialize from URL parameters on page load
