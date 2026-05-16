@@ -45,6 +45,7 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-transform: uppercase;
+  margin: 0;
 }
 .header .sub {
   font-size: 0.8rem;
@@ -63,7 +64,8 @@ body {
 .combat-logo {
   position: absolute;
   left: 16px;
-  top: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 100px;
   height: auto;
 }
@@ -73,15 +75,10 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 120px;
-}
-
-#combatScreen {
   position: relative;
 }
 
-/* Décale le contenu vers le bas pour éviter que le logo ne le chevauche */
-#combatScreen .badge-row {
-  margin-top: 20px;
+#combatScreen {
 }
 
 /* ── Cards ── */
@@ -397,8 +394,8 @@ input:focus { border-color: var(--orange); }
 
 <!-- ══════════════ COMBAT ══════════════ -->
 <div id="combatScreen" class="hidden">
-  <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="combat-logo">
   <div class="header combat-header">
+    <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="combat-logo">
     <h1 id="combatTitle">Combat</h1>
   </div>
 
