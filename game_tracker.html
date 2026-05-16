@@ -194,7 +194,23 @@ body { padding: 16px 14px 32px; }
 </div>
 
 <button class="btn btn-orange" onclick="startNewTurn()">Commencer un nouveau tour</button>
-<button class="btn btn-ghost" onclick="window.location.href='index.html'">Quitter la partie</button>
+<div style="display:flex; gap:10px;">
+  <button class="btn btn-ghost" id="btnUndoTurn" onclick="openUndoModal()" style="flex:1;">↩ Annuler le dernier tour</button>
+  <button class="btn btn-ghost" onclick="window.location.href='index.html'" style="flex:1;">Quitter la partie</button>
+</div>
+</div>
+
+<!-- ── Undo confirmation modal ── -->
+<div id="undoModal" class="log-modal-overlay hidden" onclick="closeUndoModal(event)">
+  <div class="log-modal" style="text-align:center;">
+    <div style="font-size:2rem; margin-bottom:10px;">↩</div>
+    <div class="log-modal-title" style="margin-bottom:6px;">Annuler le dernier tour ?</div>
+    <div id="undoModalBody" class="log-modal-subtitle" style="margin-bottom:20px;"></div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn btn-orange" onclick="confirmUndoLastTurn()">Confirmer l'annulation</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('undoModal').classList.add('hidden')">Annuler</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── Combat log modal ── -->
@@ -242,6 +258,18 @@ function renderGameTracker() {
   }, 0);
   document.getElementById('expTotal').textContent = totalExp;
 
+  // Toggle undo button
+  const btnUndo = document.getElementById('btnUndoTurn');
+  if (gameData.turns.length === 0) {
+    btnUndo.disabled = true;
+    btnUndo.style.opacity = '0.35';
+    btnUndo.style.cursor = 'not-allowed';
+  } else {
+    btnUndo.disabled = false;
+    btnUndo.style.opacity = '';
+    btnUndo.style.cursor = '';
+  }
+
   // Render history
   const historyList = document.getElementById('historyList');
   if (gameData.turns.length === 0) {
@@ -270,6 +298,36 @@ function renderGameTracker() {
 
 function startNewTurn() {
   window.location.href = 'character_selection.html';
+}
+
+function openUndoModal() {
+  const gameData = getGameData();
+  if (gameData.turns.length === 0) return;
+  const last = gameData.turns[gameData.turns.length - 1];
+  const matchup = `${last.playerCharacter.name}${last.opponent ? ` vs. ${last.opponent}` : ''}`;
+  const resultText = last.result === 'win' ? 'Victoire' : last.result === 'loss' ? 'Défaite' : 'Match nul';
+  let body = `Tour ${last.turnNumber} — ${matchup} (${resultText}) sera supprimé.`;
+  if (last.result === 'win' && last.exp) {
+    const total = (last.exp.expCharacter || 0) + (last.exp.expMission || 0) + (last.exp.expSecondary || 0);
+    if (total > 0) body += ` Les ${total} EXP gagnés seront déduits.`;
+  }
+  document.getElementById('undoModalBody').textContent = body;
+  document.getElementById('undoModal').classList.remove('hidden');
+}
+
+function closeUndoModal(event) {
+  if (event.target === document.getElementById('undoModal')) {
+    document.getElementById('undoModal').classList.add('hidden');
+  }
+}
+
+function confirmUndoLastTurn() {
+  const gameData = getGameData();
+  if (gameData.turns.length === 0) return;
+  gameData.turns.pop();
+  sessionStorage.setItem('gameData', JSON.stringify(gameData));
+  document.getElementById('undoModal').classList.add('hidden');
+  renderGameTracker();
 }
 
 function openLogModal(turnNumber) {
