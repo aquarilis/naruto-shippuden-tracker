@@ -774,34 +774,24 @@ function resetGame() {
 }
 
 function initFromURL() {
-  console.log('initFromURL called');
   const params = new URLSearchParams(window.location.search);
-  const team = params.get('team') || null;
   const name = params.get('name') || 'Ninja';
   const hp = parseInt(params.get('hp')) || 0;
   const chakra = parseInt(params.get('chakra')) || 0;
 
-  console.log('URL params:', { team, name, hp, chakra });
+  const gameData = JSON.parse(sessionStorage.getItem('gameData')) || {};
+  const team = gameData.team || null;
 
-  // If no team or hp/chakra invalid, redirect
   if (!team || hp <= 0 || chakra <= 0) {
-    console.log('Invalid params, redirecting to index');
     window.location.href = 'index.html';
     return;
   }
 
-  console.log('Params valid, setting up team logo');
-
   // Set team logo
   const teamLogoPath = team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
   const teamLogoElem = document.getElementById('teamLogo');
-  if (teamLogoElem) {
-    teamLogoElem.src = teamLogoPath;
-    console.log('Team logo set to:', teamLogoPath);
-  }
+  if (teamLogoElem) teamLogoElem.src = teamLogoPath;
 
-  console.log('Calling startCombatWithParams');
-  // Initialize combat
   startCombatWithParams(name, hp, chakra);
 }
 

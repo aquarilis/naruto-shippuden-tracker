@@ -145,6 +145,42 @@ input:focus { border-color: var(--orange); }
   font-size: 0.85rem;
   display: none;
 }
+
+select {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 11px 14px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+select:focus { border-color: var(--orange); }
+
+.stats-grid {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-preview {
+  flex: 1;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-icon { font-size: 1.3rem; }
+.stat-preview-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.stat-preview-value { font-size: 1.8rem; font-weight: 800; color: var(--text); }
 </style>
 </head>
 <body>
@@ -164,35 +200,49 @@ input:focus { border-color: var(--orange); }
   <div class="card">
     <div class="card-label">Personnage</div>
     <div class="field">
-      <label>Nom du Ninja (optionnel)</label>
-      <input type="text" id="ninjaName" placeholder="ex : Naruto, Sasuke…" autocomplete="off" autocorrect="off">
+      <label>Choisir un ninja</label>
+      <select id="characterSelect" onchange="onCharacterChange()">
+        <option value="">— Sélectionner —</option>
+      </select>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-label">❤️ Points de Vie</div>
-    <div class="field">
-      <label>PV maximum (valeur rouge sur la carte)</label>
-      <input type="number" id="setupHP" placeholder="ex : 50" min="1" inputmode="numeric">
+  <div id="statsPreview" class="card" style="display:none;">
+    <div class="card-label">Statistiques</div>
+    <div class="stats-grid">
+      <div class="stat-preview">
+        <span class="stat-icon">❤️</span>
+        <span class="stat-preview-label">PV</span>
+        <span class="stat-preview-value" id="previewHP">—</span>
+      </div>
+      <div class="stat-preview">
+        <span class="stat-icon">💙</span>
+        <span class="stat-preview-label">Chakra</span>
+        <span class="stat-preview-value" id="previewChakra">—</span>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-label">💙 Chakra</div>
-    <div class="field">
-      <label>Chakra 1 (valeur bleue sur la carte)</label>
-      <input type="number" id="setupC1" placeholder="ex : 15" min="1" inputmode="numeric">
-    </div>
-    <div class="field">
-      <label>Chakra 2 — optionnel (Naruto, Bee…)</label>
-      <input type="number" id="setupC2" placeholder="0" min="0" inputmode="numeric">
-    </div>
+  <div id="noCharMsg" class="card" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
+    Aucun personnage disponible pour ce tour.
   </div>
 
-  <button class="btn btn-orange" onclick="startCombat()">Commencer le combat →</button>
+  <button class="btn btn-orange" id="startBtn" onclick="startCombat()" disabled style="opacity:0.4;">Commencer le combat →</button>
+  <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
 </div>
 
 <script>
+let roster = [
+    {"name":"Naruto","team":"alliance","hp":12,"mp":5,"extra_mp":1,"available_from_turn":1},
+    {"name":"Sasuke","team":"alliance","hp":10,"mp":3,"extra_mp":null,"available_from_turn":1},
+    {"name":"Naruto 2","team":"alliance","hp":9,"mp":2,"extra_mp":null,"available_from_turn":2},
+    {"name":"Kakashi","team":"alliance","hp":10,"mp":3,"extra_mp":null,"available_from_turn":1},
+    {"name":"Kisame","team":"akatsuki","hp":15,"mp":5,"extra_mp":2,"available_from_turn":1},
+    {"name":"Itachi","team":"akatsuki","hp":16,"mp":4,"extra_mp":null,"available_from_turn":1},
+    {"name":"Obito","team":"akatsuki","hp":12,"mp":2,"extra_mp":null,"available_from_turn":2}
+];
+let selectedCharacter = null;
+
 function getGameData() {
   return JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
 }
@@ -209,44 +259,70 @@ function initializePage() {
     return;
   }
 
-  // Set team logo
   document.getElementById('teamLogo').src = getTeamLogoPath(gameData.team);
 
-  // Check for error param
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('error')) {
-    const errorMsg = document.getElementById('errorMsg');
-    errorMsg.textContent = 'Paramètres invalides. Veuillez recommencer.';
-    errorMsg.style.display = 'block';
-  }
-}
+  const currentTurn = gameData.turns.length + 1;
 
-function startCombat() {
-  const name = document.getElementById('ninjaName').value.trim() || 'Ninja';
-  const maxHP = parseInt(document.getElementById('setupHP').value) || 0;
-  const c1 = parseInt(document.getElementById('setupC1').value) || 0;
-  const c2 = parseInt(document.getElementById('setupC2').value) || 0;
-  const maxChakra = c1 + c2;
+  const available = roster.filter(c =>
+    c.team.toLowerCase() === gameData.team.toLowerCase() &&
+    c.available_from_turn <= currentTurn
+  );
 
-  if (maxHP <= 0 || maxChakra <= 0) {
-    const errorMsg = document.getElementById('errorMsg');
-    errorMsg.textContent = 'Veuillez saisir des PV et un Chakra valides (> 0).';
-    errorMsg.style.display = 'block';
+  const select = document.getElementById('characterSelect');
+
+  if (available.length === 0) {
+    select.parentElement.style.display = 'none';
+    document.getElementById('noCharMsg').style.display = 'block';
     return;
   }
 
-  const gameData = getGameData();
+  available.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+}
+
+function onCharacterChange() {
+  const select = document.getElementById('characterSelect');
+  const name = select.value;
+  selectedCharacter = roster.find(c => c.name === name) || null;
+
+  const preview = document.getElementById('statsPreview');
+  const startBtn = document.getElementById('startBtn');
+
+  if (!selectedCharacter) {
+    preview.style.display = 'none';
+    startBtn.disabled = true;
+    startBtn.style.opacity = '0.4';
+    return;
+  }
+
+  const totalChakra = (selectedCharacter.mp || 0) + (selectedCharacter.extra_mp || 0);
+  document.getElementById('previewHP').textContent = selectedCharacter.hp;
+  document.getElementById('previewChakra').textContent = selectedCharacter.extra_mp
+    ? `${selectedCharacter.mp}+${selectedCharacter.extra_mp}`
+    : selectedCharacter.mp;
+
+  preview.style.display = 'block';
+  startBtn.disabled = false;
+  startBtn.style.opacity = '1';
+}
+
+function startCombat() {
+  if (!selectedCharacter) return;
+
+  const totalChakra = (selectedCharacter.mp || 0) + (selectedCharacter.extra_mp || 0);
   const params = new URLSearchParams({
-    team: gameData.team,
-    name: name,
-    hp: maxHP,
-    chakra: maxChakra
+    name: selectedCharacter.name,
+    hp: selectedCharacter.hp,
+    chakra: totalChakra
   });
 
   window.location.href = `combat.html?${params.toString()}`;
 }
 
-// Initialize on page load
 window.addEventListener('load', initializePage);
 </script>
 

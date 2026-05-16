@@ -1,0 +1,58 @@
+[
+    {
+        "name": "Naruto",
+        "team": "alliance",
+        "hp": 12,
+        "mp": 5,
+        "extra_mp": 1,
+        "available_from_turn": 1
+    },
+    {
+        "name": "Sasuke",
+        "team": "alliance",
+        "hp": 10,
+        "mp": 3,
+        "extra_mp": null,
+        "available_from_turn": 1
+    },
+    {
+        "name": "Naruto 2",
+        "team": "alliance",
+        "hp": 9,
+        "mp": 2,
+        "extra_mp": null,
+        "available_from_turn": 2
+    },
+    {
+        "name": "Kakashi",
+        "team": "alliance",
+        "hp": 10,
+        "mp": 3,
+        "extra_mp": null,
+        "available_from_turn": 1
+    },
+    {
+        "name": "Kisame",
+        "team": "akatsuki",
+        "hp": 15,
+        "mp": 5,
+        "extra_mp": 2,
+        "available_from_turn": 1
+    },
+    {
+        "name": "Itachi",
+        "team": "akatsuki",
+        "hp": 16,
+        "mp": 4,
+        "extra_mp": null,
+        "available_from_turn": 1
+    },
+    {
+        "name": "Obito",
+        "team": "akatsuki",
+        "hp": 12,
+        "mp": 2,
+        "extra_mp": null,
+        "available_from_turn": 2
+    }
+]
