@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Naruto — Choix du Camp</title>
+<style>
+:root {
+  --hp: #e53935;
+  --hp-dark: #8b0000;
+  --chakra: #1e88e5;
+  --chakra-dark: #0a3d7a;
+  --heal: #43a047;
+  --bg: #0e0e1a;
+  --card: #16182e;
+  --card2: #1e2040;
+  --border: #2a2d50;
+  --text: #e8e8f0;
+  --muted: #7a7da0;
+  --orange: #ff6d00;
+  --orange2: #ff9100;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+body {
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding: 16px 14px 32px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-left {
+  position: absolute;
+  left: 0;
+  width: 60px;
+  height: auto;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: transform 0.08s, border-color 0.12s;
+  text-align: center;
+}
+
+.card:active {
+  transform: scale(0.97);
+}
+
+.card img {
+  width: 140px;
+  height: auto;
+  margin-bottom: 12px;
+}
+
+.card-label {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
+  <h1>Choix du Camp</h1>
+</div>
+
+<div class="card" onclick="selectTeam('alliance')">
+  <img src="img/alliance_shinobi.png" alt="Alliance Shinobi">
+  <div class="card-label">Camp 1</div>
+  <div class="card-title">Alliance Shinobi</div>
+</div>
+
+<div class="card" onclick="selectTeam('akatsuki')">
+  <img src="img/akatsuki.png" alt="Akatsuki">
+  <div class="card-label">Camp 2</div>
+  <div class="card-title">Akatsuki</div>
+</div>
+
+<script>
+function selectTeam(team) {
+  // Initialize game data in sessionStorage
+  const gameData = { team, turns: [] };
+  sessionStorage.setItem('gameData', JSON.stringify(gameData));
+
+  // Redirect to game tracker
+  window.location.href = `game_tracker.html?team=${team}`;
+}
+</script>
+
+</body>
+</html>

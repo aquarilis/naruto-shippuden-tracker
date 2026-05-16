@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Naruto — Suivi de Partie</title>
+<style>
+:root {
+  --hp: #e53935;
+  --hp-dark: #8b0000;
+  --chakra: #1e88e5;
+  --chakra-dark: #0a3d7a;
+  --heal: #43a047;
+  --bg: #0e0e1a;
+  --card: #16182e;
+  --card2: #1e2040;
+  --border: #2a2d50;
+  --text: #e8e8f0;
+  --muted: #7a7da0;
+  --orange: #ff6d00;
+  --orange2: #ff9100;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+body {
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding: 16px 14px 32px;
+}
+
+/* ── Header with dual logos ── */
+.header {
+  position: relative;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.header-logo-left {
+  position: absolute;
+  left: 0;
+  width: 100px;
+  height: auto;
+}
+
+.header-logo-right {
+  position: absolute;
+  right: 0;
+  width: 100px;
+  height: auto;
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── Stats section ── */
+.stats {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+/* ── History section ── */
+.history {
+  margin-bottom: 20px;
+}
+
+.history-label {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.history-item-turn {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.history-item-character {
+  flex: 1;
+  margin-left: 12px;
+  text-align: left;
+}
+
+.history-item-result {
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.result-win {
+  background: rgba(67, 160, 71, 0.3);
+  color: var(--heal);
+}
+
+.result-loss {
+  background: rgba(229, 57, 53, 0.3);
+  color: var(--hp);
+}
+
+.result-draw {
+  background: rgba(158, 158, 158, 0.3);
+  color: var(--muted);
+}
+
+.empty-state {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.12s, transform 0.08s;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.btn:active { opacity: 0.75; transform: scale(0.97); }
+
+.btn-orange {
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  color: #fff;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
+  <h1>Suivi de Partie</h1>
+  <img id="teamLogo" src="" alt="Team" class="header-logo-right">
+</div>
+
+<div class="stats">
+  <div class="stat-label">Tour Actuel</div>
+  <div class="stat-value" id="tourCount">1</div>
+</div>
+
+<div class="history">
+  <div class="history-label">Historique des tours</div>
+  <div class="history-list" id="historyList">
+    <div class="empty-state">Aucun tour pour l'instant</div>
+  </div>
+</div>
+
+<button class="btn btn-orange" onclick="startNewTurn()">Commencer un nouveau tour</button>
+<button class="btn btn-ghost" onclick="window.location.href='index.html'">Quitter la partie</button>
+
+<script>
+function getGameData() {
+  return JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
+}
+
+function getTeamLogoPath(team) {
+  return team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
+}
+
+function renderGameTracker() {
+  const gameData = getGameData();
+
+  if (!gameData.team) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  // Set team logo
+  document.getElementById('teamLogo').src = getTeamLogoPath(gameData.team);
+
+  // Update tour count
+  const nextTour = gameData.turns.length + 1;
+  document.getElementById('tourCount').textContent = nextTour;
+
+  // Render history
+  const historyList = document.getElementById('historyList');
+  if (gameData.turns.length === 0) {
+    historyList.innerHTML = '<div class="empty-state">Aucun tour pour l\'instant</div>';
+  } else {
+    historyList.innerHTML = gameData.turns.map(turn => {
+      const resultClass = `result-${turn.result}`;
+      const resultText = turn.result === 'win' ? 'Victoire' : turn.result === 'loss' ? 'Défaite' : 'Match nul';
+      return `
+        <div class="history-item">
+          <span class="history-item-turn">Tour ${turn.turnNumber}</span>
+          <span class="history-item-character">${turn.playerCharacter.name}</span>
+          <span class="history-item-result ${resultClass}">${resultText}</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function startNewTurn() {
+  const gameData = getGameData();
+  window.location.href = `character_selection.html?team=${gameData.team}`;
+}
+
+// Initialize on page load
+window.addEventListener('load', renderGameTracker);
+</script>
+
+</body>
+</html>

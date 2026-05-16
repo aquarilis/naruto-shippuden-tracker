@@ -61,11 +61,16 @@ body {
   margin-bottom: 4px;
 }
 
-.combat-logo {
+.header-logo-left {
   position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 0;
+  width: 100px;
+  height: auto;
+}
+
+.header-logo-right {
+  position: absolute;
+  right: 0;
   width: 100px;
   height: auto;
 }
@@ -357,8 +362,9 @@ input:focus { border-color: var(--orange); }
 <!-- ══════════════ COMBAT ══════════════ -->
 <div id="combatScreen" class="hidden">
   <div class="header combat-header">
-    <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="combat-logo">
+    <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
     <h1 id="combatTitle">Combat</h1>
+    <img id="teamLogo" src="" alt="Team" class="header-logo-right">
   </div>
 
   <!-- Round + Action badges -->
@@ -443,6 +449,26 @@ input:focus { border-color: var(--orange); }
   </div>
 
   <button class="btn btn-ghost" onclick="resetGame()" style="margin-top:4px;">↺ Nouveau combat</button>
+</div>
+
+<!-- ══════════════ RECORD SCREEN ══════════════ -->
+<div id="recordScreen" class="hidden">
+  <div class="header">
+    <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
+    <div>
+      <h1>Tour Terminé</h1>
+      <div class="sub">Enregistrement du résultat</div>
+    </div>
+    <img id="teamLogoRecord" src="" alt="Team" class="header-logo-right">
+  </div>
+
+  <div class="card" style="text-align:center; padding: 28px 20px; margin-top: 20px;">
+    <div class="card-label">Que s'est-il passé ?</div>
+    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-orange" onclick="recordResult('win')">✓ Victoire</button>
+      <button class="btn" style="background: rgba(158, 158, 158, 0.2); border: 1.5px solid var(--border); color: var(--muted);" onclick="recordResult('draw')">⟷ Match Nul</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════ END SCREEN ══════════════ -->
@@ -638,27 +664,15 @@ function endCombat(reason) {
   renderCombat();
   hide('combatScreen');
   hide('roundOverlay');
-  show('endScreen');
 
-  const rounds = G.round;
   if (reason === 'ko') {
-    document.getElementById('endIcon').textContent = '💀';
-    document.getElementById('endTitle').textContent = 'KO !';
-    document.getElementById('endTitle').style.color = 'var(--hp)';
-    document.getElementById('endSub').textContent =
-      `${G.name} est tombé au Round ${rounds}, Action ${G.action}. Le combat est terminé.`;
+    // Auto-record loss and redirect
+    recordResult('loss');
   } else {
-    document.getElementById('endIcon').textContent = '⚖️';
-    document.getElementById('endTitle').textContent = 'Égalité';
-    document.getElementById('endTitle').style.color = 'var(--orange)';
-    document.getElementById('endSub').textContent =
-      `Les 3 rounds sont terminés. Aucun des deux Ninjas n'a perdu tous ses PV — personne ne remporte la mission.`;
+    // Show record screen to choose victory or draw
+    show('recordScreen');
+    document.getElementById('teamLogoRecord').src = document.getElementById('teamLogo').src;
   }
-
-  document.getElementById('endStats').innerHTML =
-    `<div class="end-stat"><strong style="color:var(--hp)">${G.hp}</strong> PV restants</div>` +
-    `<div class="end-stat"><strong style="color:var(--chakra)">${G.chakra}</strong> PC restants</div>` +
-    `<div class="end-stat"><strong>${rounds}</strong> rounds joués</div>`;
 }
 
 // ── Helpers ────────────────────────────────────────────
@@ -687,8 +701,57 @@ function toggleHeal() {
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
+function recordResult(result) {
+  const gameData = JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
+  const turn = {
+    turnNumber: gameData.turns.length + 1,
+    playerCharacter: {
+      name: G.name,
+      hp: G.maxHP,
+      chakra: G.maxChakra
+    },
+    result: result,
+    combatRounds: G.round
+  };
+  gameData.turns.push(turn);
+  sessionStorage.setItem('gameData', JSON.stringify(gameData));
+
+  // Redirect back to game tracker
+  window.location.href = `game_tracker.html?team=${gameData.team}`;
+}
+
 function resetGame() {
-  window.location.href = 'setup.html';
+  window.location.href = 'character_selection.html';
+}
+
+function initFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const team = params.get('team') || null;
+  const name = params.get('name') || 'Ninja';
+  const hp = parseInt(params.get('hp')) || 0;
+  const chakra = parseInt(params.get('chakra')) || 0;
+
+  // Verify game session exists
+  const gameData = JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
+  if (!team || !gameData.team) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  if (hp <= 0 || chakra <= 0) {
+    window.location.href = 'character_selection.html?error=invalid&team=' + team;
+    return;
+  }
+
+  // Set team logo
+  const teamLogoPath = team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
+  const teamLogoElem = document.getElementById('teamLogo');
+  if (teamLogoElem) {
+    teamLogoElem.src = teamLogoPath;
+  }
+
+  // Initialize combat
+  startCombatWithParams(name, hp, chakra);
 }
 
 // Initialize from URL parameters on page load
