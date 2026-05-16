@@ -124,7 +124,7 @@ body { padding: 16px 14px 32px; }
   <div class="header">
     <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
-      <h1>Sélection du Personnage</h1>
+      <h1>Sélection des combattants</h1>
       <div class="sub" id="step1Subtitle">Tour —</div>
     </div>
     <img id="teamLogo1" src="" alt="Team" class="header-logo-right">
@@ -161,7 +161,7 @@ body { padding: 16px 14px 32px; }
   <div class="header">
     <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
-      <h1>Sélection de l'Adversaire</h1>
+      <h1>Sélection des combattants</h1>
       <div class="sub" id="step2Subtitle">Tour —</div>
     </div>
     <img id="teamLogo2" src="" alt="Team" class="header-logo-right">
@@ -336,6 +336,7 @@ function sortCharacters(characters, currentTurn, forceUnlock) {
 function selectCard(character, card, gridId) {
   document.querySelectorAll(`#${gridId} .roster-card`).forEach(el => el.classList.remove('selected'));
   card.classList.add('selected');
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   return character;
 }
 
