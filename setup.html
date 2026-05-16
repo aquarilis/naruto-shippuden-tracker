@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Naruto — Suivi de Combat</title>
+<style>
+:root {
+  --hp: #e53935;
+  --hp-dark: #8b0000;
+  --chakra: #1e88e5;
+  --chakra-dark: #0a3d7a;
+  --heal: #43a047;
+  --bg: #0e0e1a;
+  --card: #16182e;
+  --card2: #1e2040;
+  --border: #2a2d50;
+  --text: #e8e8f0;
+  --muted: #7a7da0;
+  --orange: #ff6d00;
+  --orange2: #ff9100;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+body {
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding: 16px 14px 32px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.header h1 {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  margin: 0;
+}
+.header .sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.header-logo {
+  max-width: 280px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+}
+.card-label {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ── Form inputs ── */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+input[type="text"], input[type="number"] {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 11px 14px;
+  outline: none;
+  -webkit-appearance: none;
+}
+input[type="number"] {
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+input:focus { border-color: var(--orange); }
+
+/* ── Buttons ── */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.12s, transform 0.08s;
+  text-align: center;
+}
+.btn:active { opacity: 0.75; transform: scale(0.97); }
+.btn-orange { background: linear-gradient(135deg, var(--orange), var(--orange2)); color: #fff; }
+
+.error-msg {
+  background: var(--hp-dark);
+  border: 1px solid var(--hp);
+  border-radius: 10px;
+  color: #ffcccc;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div id="setupScreen">
+  <div class="header">
+    <img src="img/naruto_shippuden_logo.png" alt="Naruto Shippuden" class="header-logo">
+    <div class="sub">Combats de ninja</div>
+  </div>
+
+  <div id="errorMsg" class="error-msg"></div>
+
+  <div class="card">
+    <div class="card-label">Personnage</div>
+    <div class="field">
+      <label>Nom du Ninja (optionnel)</label>
+      <input type="text" id="ninjaName" placeholder="ex : Naruto, Sasuke…" autocomplete="off" autocorrect="off">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">❤️ Points de Vie</div>
+    <div class="field">
+      <label>PV maximum (valeur rouge sur la carte)</label>
+      <input type="number" id="setupHP" placeholder="ex : 50" min="1" inputmode="numeric">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">💙 Chakra</div>
+    <div class="field">
+      <label>Chakra 1 (valeur bleue sur la carte)</label>
+      <input type="number" id="setupC1" placeholder="ex : 15" min="1" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>Chakra 2 — optionnel (Naruto, Bee…)</label>
+      <input type="number" id="setupC2" placeholder="0" min="0" inputmode="numeric">
+    </div>
+  </div>
+
+  <button class="btn btn-orange" onclick="startCombat()">Commencer le combat →</button>
+</div>
+
+<script>
+function startCombat() {
+  const name = document.getElementById('ninjaName').value.trim() || 'Ninja';
+  const maxHP = parseInt(document.getElementById('setupHP').value) || 0;
+  const c1 = parseInt(document.getElementById('setupC1').value) || 0;
+  const c2 = parseInt(document.getElementById('setupC2').value) || 0;
+  const maxChakra = c1 + c2;
+
+  if (maxHP <= 0 || maxChakra <= 0) {
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.textContent = 'Veuillez saisir des PV et un Chakra valides (> 0).';
+    errorMsg.style.display = 'block';
+    return;
+  }
+
+  const params = new URLSearchParams({
+    name: name,
+    hp: maxHP,
+    chakra: maxChakra
+  });
+
+  window.location.href = `combat.html?${params.toString()}`;
+}
+
+// Check for error param on load
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('error')) {
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.textContent = 'Paramètres invalides. Veuillez recommencer.';
+    errorMsg.style.display = 'block';
+  }
+});
+</script>
+
+</body>
+</html>

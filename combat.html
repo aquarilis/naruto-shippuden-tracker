@@ -354,44 +354,6 @@ input:focus { border-color: var(--orange); }
 </head>
 <body>
 
-<!-- ══════════════ SETUP ══════════════ -->
-<div id="setupScreen">
-  <div class="header">
-    <img src="img/naruto_shippuden_logo.png" alt="Naruto Shippuden" class="header-logo">
-    <div class="sub">Combats de ninja</div>
-  </div>
-
-  <div class="card">
-    <div class="card-label">Personnage</div>
-    <div class="field">
-      <label>Nom du Ninja (optionnel)</label>
-      <input type="text" id="ninjaName" placeholder="ex : Naruto, Sasuke…" autocomplete="off" autocorrect="off">
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-label">❤️ Points de Vie</div>
-    <div class="field">
-      <label>PV maximum (valeur rouge sur la carte)</label>
-      <input type="number" id="setupHP" placeholder="ex : 50" min="1" inputmode="numeric">
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-label">💙 Chakra</div>
-    <div class="field">
-      <label>Chakra 1 (valeur bleue sur la carte)</label>
-      <input type="number" id="setupC1" placeholder="ex : 15" min="1" inputmode="numeric">
-    </div>
-    <div class="field">
-      <label>Chakra 2 — optionnel (Naruto, Bee…)</label>
-      <input type="number" id="setupC2" placeholder="0" min="0" inputmode="numeric">
-    </div>
-  </div>
-
-  <button class="btn btn-orange" onclick="startCombat()">Commencer le combat →</button>
-</div>
-
 <!-- ══════════════ COMBAT ══════════════ -->
 <div id="combatScreen" class="hidden">
   <div class="header combat-header">
@@ -512,18 +474,7 @@ input:focus { border-color: var(--orange); }
 // ── State ──────────────────────────────────────────────
 let G = {};
 
-function startCombat() {
-  const name = document.getElementById('ninjaName').value.trim() || 'Ninja';
-  const maxHP = parseInt(document.getElementById('setupHP').value) || 0;
-  const c1 = parseInt(document.getElementById('setupC1').value) || 0;
-  const c2 = parseInt(document.getElementById('setupC2').value) || 0;
-  const maxChakra = c1 + c2;
-
-  if (maxHP <= 0 || maxChakra <= 0) {
-    alert('Veuillez saisir des PV et un Chakra valides (> 0).');
-    return;
-  }
-
+function startCombatWithParams(name, maxHP, maxChakra) {
   G = {
     name,
     maxHP,
@@ -536,11 +487,24 @@ function startCombat() {
   };
 
   document.getElementById('log').innerHTML = '';
-  hide('setupScreen');
   show('combatScreen');
   hide('endScreen');
   hide('roundOverlay');
   renderCombat();
+}
+
+function initFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get('name') || 'Ninja';
+  const hp = parseInt(params.get('hp')) || 0;
+  const chakra = parseInt(params.get('chakra')) || 0;
+
+  if (hp <= 0 || chakra <= 0) {
+    window.location.href = 'setup.html?error=invalid';
+    return;
+  }
+
+  startCombatWithParams(name, hp, chakra);
 }
 
 // ── Render ─────────────────────────────────────────────
@@ -724,15 +688,11 @@ function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
 function resetGame() {
-  hide('combatScreen');
-  hide('endScreen');
-  hide('roundOverlay');
-  show('setupScreen');
-  document.getElementById('ninjaName').value = '';
-  document.getElementById('setupHP').value = '';
-  document.getElementById('setupC1').value = '';
-  document.getElementById('setupC2').value = '';
+  window.location.href = 'setup.html';
 }
+
+// Initialize from URL parameters on page load
+window.addEventListener('load', initFromURL);
 </script>
 </body>
 </html>
