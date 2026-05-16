@@ -5,6 +5,7 @@
         "hp": 12,
         "mp": 5,
         "extra_mp": 1,
+        "xp": 3,
         "available_from_turn": 1,
         "available_until_turn": null
     },
@@ -14,6 +15,7 @@
         "hp": 10,
         "mp": 3,
         "extra_mp": null,
+        "xp": 2,
         "available_from_turn": 1,
         "available_until_turn": 1
     },
@@ -23,6 +25,7 @@
         "hp": 9,
         "mp": 2,
         "extra_mp": null,
+        "xp": 4,
         "available_from_turn": 5,
         "available_until_turn": null
     },
@@ -32,6 +35,7 @@
         "hp": 10,
         "mp": 3,
         "extra_mp": null,
+        "xp": 3,
         "available_from_turn": 1,
         "available_until_turn": null
     },
@@ -41,6 +45,7 @@
         "hp": 15,
         "mp": 5,
         "extra_mp": 2,
+        "xp": 5,
         "available_from_turn": 1,
         "available_until_turn": null
     },
@@ -50,6 +55,7 @@
         "hp": 16,
         "mp": 4,
         "extra_mp": null,
+        "xp": 6,
         "available_from_turn": 1,
         "available_until_turn": null
     },
@@ -59,6 +65,7 @@
         "hp": 12,
         "mp": 2,
         "extra_mp": null,
+        "xp": 7,
         "available_from_turn": 3,
         "available_until_turn": null
     }

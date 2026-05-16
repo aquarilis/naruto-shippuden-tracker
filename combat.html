@@ -387,8 +387,8 @@ body { padding: 16px 14px 32px; }
 // ── State ──────────────────────────────────────────────
 let G = {};
 
-function startCombatWithParams(name, maxHP, maxChakra, opponent) {
-  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent });
+function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp) {
+  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent, opponentXp });
 
   G = {
     name,
@@ -397,6 +397,7 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent) {
     hp: maxHP,
     chakra: maxChakra,
     opponent: opponent || null,
+    opponentXp: opponentXp || 0,
     round: 1,
     action: 1,
     log: []
@@ -615,7 +616,7 @@ function stepXp(id, delta) {
 }
 
 function openXpModal() {
-  document.getElementById('xpCharacter').value = 0;
+  document.getElementById('xpCharacter').value = G.opponentXp || 0;
   document.getElementById('xpMission').value = 0;
   document.getElementById('xpSecondary').value = 0;
   document.getElementById('xpModal').classList.remove('hidden');
@@ -664,6 +665,7 @@ function initFromURL() {
   const hp = parseInt(params.get('hp')) || 0;
   const chakra = parseInt(params.get('chakra')) || 0;
   const opponent = params.get('opponent') || null;
+  const opponentXp = parseInt(params.get('opponentXp')) || 0;
 
   const gameData = JSON.parse(sessionStorage.getItem('gameData')) || {};
   const team = gameData.team || null;
@@ -682,7 +684,7 @@ function initFromURL() {
   const titleElem = document.getElementById('combatTitle');
   if (titleElem) titleElem.textContent = opponent ? `${name} vs. ${opponent}` : name;
 
-  startCombatWithParams(name, hp, chakra, opponent);
+  startCombatWithParams(name, hp, chakra, opponent, opponentXp);
 }
 
 // Initialize from URL parameters on page load
@@ -788,11 +790,9 @@ window.addEventListener('load', initFromURL);
     </div>
     <div class="modal-content">
       <div class="stepper-wrap">
-        <label>⭐ XP du personnage</label>
-        <div class="stepper">
-          <button onclick="stepXp('xpCharacter', -1)">−</button>
-          <input type="number" id="xpCharacter" value="0" min="0" inputmode="numeric">
-          <button onclick="stepXp('xpCharacter', 1)">+</button>
+        <label>⭐ XP du personnage <span style="font-size:0.75rem; color:var(--muted);">(automatique)</span></label>
+        <div class="stepper" style="opacity:0.6;">
+          <input type="number" id="xpCharacter" value="0" min="0" inputmode="numeric" readonly style="cursor:default;">
         </div>
       </div>
       <div class="stepper-wrap">
