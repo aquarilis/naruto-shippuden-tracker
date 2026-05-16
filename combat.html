@@ -717,8 +717,7 @@ function endCombat(reason) {
   hide('roundOverlay');
 
   if (reason === 'ko') {
-    // Auto-record loss and redirect
-    recordResult('loss');
+    document.getElementById('defeatModal').classList.remove('hidden');
   } else {
     // Show record screen to choose victory or draw
     show('recordScreen');
@@ -844,6 +843,22 @@ window.addEventListener('load', initFromURL);
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeEndCombatModal()">Annuler</button>
       <button class="btn btn-orange" onclick="confirmEndCombat()">✓ Confirmer la victoire</button>
+    </div>
+  </div>
+</div>
+
+<div id="defeatModal" class="hidden action-modal-overlay">
+  <div class="action-modal">
+    <div class="modal-header">
+      <h2>Défaite</h2>
+    </div>
+    <div class="modal-content" style="text-align:center; padding: 24px 16px;">
+      <div style="font-size: 2.5rem; margin-bottom: 12px;">💀</div>
+      <div style="font-size: 1rem; color: var(--text); margin-bottom: 8px; font-weight: 700;">Vous avez été vaincu !</div>
+      <div style="font-size: 0.85rem; color: var(--muted);">Le combat sera enregistré comme une défaite.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-orange" onclick="recordResult('loss')">Retour au suivi de partie</button>
     </div>
   </div>
 </div>
