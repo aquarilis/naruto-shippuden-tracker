@@ -175,9 +175,15 @@ body { padding: 16px 14px 32px; }
   <img id="teamLogo" src="" alt="Team" class="header-logo-right">
 </div>
 
-<div class="stats">
-  <div class="stat-label">Tour Actuel</div>
-  <div class="stat-value" id="tourCount">1</div>
+<div class="stats" style="display:flex; gap:12px;">
+  <div style="flex:1;">
+    <div class="stat-label">Tour Actuel</div>
+    <div class="stat-value" id="tourCount">1</div>
+  </div>
+  <div style="flex:1; border-left: 1px solid var(--border); padding-left:12px;">
+    <div class="stat-label">Points d'Expérience</div>
+    <div class="stat-value" id="expTotal" style="color: var(--orange2);">0</div>
+  </div>
 </div>
 
 <div class="history">
@@ -227,6 +233,15 @@ function renderGameTracker() {
   const nextTour = gameData.turns.length + 1;
   document.getElementById('tourCount').textContent = nextTour;
 
+  // Compute total EXP
+  const totalExp = gameData.turns.reduce((sum, t) => {
+    if (t.result === 'win' && t.exp) {
+      return sum + (t.exp.expCharacter || 0) + (t.exp.expMission || 0) + (t.exp.expSecondary || 0);
+    }
+    return sum;
+  }, 0);
+  document.getElementById('expTotal').textContent = totalExp;
+
   // Render history
   const historyList = document.getElementById('historyList');
   if (gameData.turns.length === 0) {
@@ -236,10 +251,16 @@ function renderGameTracker() {
       const resultClass = `result-${turn.result}`;
       const resultText = turn.result === 'win' ? 'Victoire' : turn.result === 'loss' ? 'Défaite' : 'Match nul';
       const matchup = `${turn.playerCharacter.name}${turn.opponent ? ` vs. ${turn.opponent}` : ''}`;
+      const expBadge = turn.result === 'win' && turn.exp
+        ? (() => {
+            const total = (turn.exp.expCharacter || 0) + (turn.exp.expMission || 0) + (turn.exp.expSecondary || 0);
+            return total > 0 ? `<span style="font-size:0.72rem; color:var(--orange2); margin-left:6px;">+${total} EXP</span>` : '';
+          })()
+        : '';
       return `
         <div class="history-item" onclick="openLogModal(${turn.turnNumber})">
           <span class="history-item-turn">Tour ${turn.turnNumber}</span>
-          <span class="history-item-character">${matchup}</span>
+          <span class="history-item-character">${matchup}${expBadge}</span>
           <span class="history-item-result ${resultClass}">${resultText}</span>
         </div>
       `;
@@ -263,11 +284,29 @@ function openLogModal(turnNumber) {
   document.getElementById('logModalSubtitle').textContent = `${resultText} · ${turn.combatRounds} round${turn.combatRounds > 1 ? 's' : ''}`;
 
   const entries = document.getElementById('logModalEntries');
-  if (!turn.combatLog || turn.combatLog.length === 0) {
-    entries.innerHTML = '<div class="log-modal-empty">Aucun historique disponible</div>';
-  } else {
-    entries.innerHTML = turn.combatLog.map(line => `<div>${line}</div>`).join('');
+  let html = '';
+
+  if (turn.result === 'win' && turn.exp) {
+    const { expCharacter = 0, expMission = 0, expSecondary = 0 } = turn.exp;
+    const total = expCharacter + expMission + expSecondary;
+    if (total > 0) {
+      html += `<div style="background:rgba(255,145,0,0.1); border:1px solid rgba(255,145,0,0.3); border-radius:8px; padding:10px 12px; margin-bottom:8px;">`;
+      html += `<div style="font-size:0.7rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--orange2); margin-bottom:6px;">🌟 EXP gagnés</div>`;
+      if (expCharacter > 0) html += `<div>⭐ Personnage : <strong style="color:var(--orange2);">+${expCharacter}</strong></div>`;
+      if (expMission   > 0) html += `<div>🎯 Mission : <strong style="color:var(--orange2);">+${expMission}</strong></div>`;
+      if (expSecondary > 0) html += `<div>📋 Mission(s) secondaire(s) : <strong style="color:var(--orange2);">+${expSecondary}</strong></div>`;
+      html += `<div style="border-top:1px solid rgba(255,145,0,0.2); margin-top:6px; padding-top:6px;">Total : <strong style="color:var(--orange2);">+${total} EXP</strong></div>`;
+      html += `</div>`;
+    }
   }
+
+  if (!turn.combatLog || turn.combatLog.length === 0) {
+    html += '<div class="log-modal-empty">Aucun historique disponible</div>';
+  } else {
+    html += turn.combatLog.map(line => `<div>${line}</div>`).join('');
+  }
+
+  entries.innerHTML = html;
 
   document.getElementById('logModal').classList.remove('hidden');
 }

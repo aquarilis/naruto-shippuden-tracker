@@ -348,7 +348,7 @@ body { padding: 16px 14px 32px; }
   <div class="card" style="text-align:center; padding: 28px 20px; margin-top: 20px;">
     <div class="card-label">Que s'est-il passé ?</div>
     <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
-      <button class="btn btn-orange" onclick="recordResult('win')">✓ Victoire</button>
+      <button class="btn btn-orange" onclick="openExpModal()">✓ Victoire</button>
       <button class="btn" style="background: rgba(158, 158, 158, 0.2); border: 1.5px solid var(--border); color: var(--muted);" onclick="recordResult('draw')">⟷ Match Nul</button>
     </div>
   </div>
@@ -595,7 +595,7 @@ function closeEndCombatModal() {
 
 function confirmEndCombat() {
   closeEndCombatModal();
-  recordResult('win');
+  openExpModal();
 }
 
 function openActionModal() {
@@ -609,7 +609,31 @@ function closeActionModal() {
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
-function recordResult(result) {
+function stepExp(id, delta) {
+  const el = document.getElementById(id);
+  el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
+}
+
+function openExpModal() {
+  document.getElementById('expCharacter').value = 0;
+  document.getElementById('expMission').value = 0;
+  document.getElementById('expSecondary').value = 0;
+  document.getElementById('expModal').classList.remove('hidden');
+}
+
+function closeExpModal() {
+  document.getElementById('expModal').classList.add('hidden');
+}
+
+function confirmExpAndSave() {
+  const expCharacter = Math.max(0, parseInt(document.getElementById('expCharacter').value) || 0);
+  const expMission   = Math.max(0, parseInt(document.getElementById('expMission').value) || 0);
+  const expSecondary = Math.max(0, parseInt(document.getElementById('expSecondary').value) || 0);
+  closeExpModal();
+  recordResult('win', { expCharacter, expMission, expSecondary });
+}
+
+function recordResult(result, exp) {
   const gameData = JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
   const turn = {
     turnNumber: gameData.turns.length + 1,
@@ -621,12 +645,12 @@ function recordResult(result) {
     opponent: G.opponent || null,
     result: result,
     combatRounds: G.round,
-    combatLog: [...G.log]
+    combatLog: [...G.log],
+    exp: result === 'win' ? (exp || null) : null
   };
   gameData.turns.push(turn);
   sessionStorage.setItem('gameData', JSON.stringify(gameData));
 
-  // Redirect back to game tracker
   window.location.href = 'game_tracker.html';
 }
 
@@ -752,6 +776,45 @@ window.addEventListener('load', initFromURL);
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeActionModal()">Annuler</button>
       <button class="btn btn-orange" onclick="confirmAction()">Valider l'action →</button>
+    </div>
+  </div>
+</div>
+<!-- ══════════════ EXP MODAL ══════════════ -->
+<div id="expModal" class="hidden action-modal-overlay">
+  <div class="action-modal">
+    <div class="modal-header">
+      <h2>🌟 Points d'Expérience</h2>
+      <div style="font-size: 0.75rem; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px;">EXP gagnés lors de cette victoire</div>
+    </div>
+    <div class="modal-content">
+      <div class="stepper-wrap">
+        <label>⭐ EXP du personnage</label>
+        <div class="stepper">
+          <button onclick="stepExp('expCharacter', -1)">−</button>
+          <input type="number" id="expCharacter" value="0" min="0" inputmode="numeric">
+          <button onclick="stepExp('expCharacter', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-wrap">
+        <label>🎯 EXP de la mission</label>
+        <div class="stepper">
+          <button onclick="stepExp('expMission', -1)">−</button>
+          <input type="number" id="expMission" value="0" min="0" inputmode="numeric">
+          <button onclick="stepExp('expMission', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-wrap">
+        <label>📋 EXP de mission(s) secondaire(s)</label>
+        <div class="stepper">
+          <button onclick="stepExp('expSecondary', -1)">−</button>
+          <input type="number" id="expSecondary" value="0" min="0" inputmode="numeric">
+          <button onclick="stepExp('expSecondary', 1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeExpModal(); recordResult('win', null);">Ignorer</button>
+      <button class="btn btn-orange" onclick="confirmExpAndSave()">✓ Confirmer →</button>
     </div>
   </div>
 </div>
