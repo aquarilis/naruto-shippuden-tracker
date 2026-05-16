@@ -305,7 +305,7 @@ input:focus { border-color: var(--orange); }
 
 /* ── Overlay / Modal ── */
 .overlay {
-  position: fixed; inset: 0;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0;
   background: rgba(0,0,0,0.75);
   display: flex; align-items: center; justify-content: center;
   z-index: 100;
@@ -335,14 +335,16 @@ input:focus { border-color: var(--orange); }
 /* ── Action Modal ── */
 .action-modal-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background: rgba(0,0,0,0.75);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   z-index: 1000;
   padding: 16px 14px 32px;
-  animation: slideUp 0.2s ease-out;
 }
 
 .action-modal-overlay.hidden {
@@ -369,6 +371,7 @@ input:focus { border-color: var(--orange); }
   overflow: hidden;
   max-height: 90vh;
   overflow-y: auto;
+  animation: slideUp 0.2s ease-out;
 }
 
 .modal-header {
@@ -484,7 +487,7 @@ input:focus { border-color: var(--orange); }
     <div class="log" id="log"><div class="log-entry" style="color:var(--muted); font-style:italic;">Le combat commence…</div></div>
   </div>
 
-  <button class="btn btn-ghost" onclick="resetGame()" style="margin-top:4px;">↺ Nouveau combat</button>
+  <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:4px;">✕ Annuler combat</button>
 </div>
 
 
@@ -519,7 +522,7 @@ input:focus { border-color: var(--orange); }
     <div class="end-title" id="endTitle"></div>
     <div class="end-sub" id="endSub"></div>
     <div class="end-stats" id="endStats"></div>
-    <button class="btn btn-orange" onclick="resetGame()">↺ Nouveau combat</button>
+    <button class="btn btn-orange" onclick="window.location.href='game_tracker.html'">↩ Retour au suivi</button>
   </div>
 </div>
 
@@ -763,7 +766,7 @@ function recordResult(result) {
   sessionStorage.setItem('gameData', JSON.stringify(gameData));
 
   // Redirect back to game tracker
-  window.location.href = `game_tracker.html?team=${gameData.team}`;
+  window.location.href = 'game_tracker.html';
 }
 
 function resetGame() {

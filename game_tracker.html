@@ -197,6 +197,14 @@ body {
 </head>
 <body>
 
+<div id="noDataScreen" style="display:none; text-align:center; padding-top: 60px;">
+  <div style="font-size: 2.5rem; margin-bottom: 16px;">⚠️</div>
+  <div style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Aucune donnée de partie détectée</div>
+  <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 32px;">Démarre une nouvelle partie depuis la page d'accueil.</div>
+  <button class="btn btn-orange" onclick="window.location.href='index.html'">Retourner à l'accueil</button>
+</div>
+
+<div id="gameScreen">
 <div class="header">
   <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
   <h1>Suivi de Partie</h1>
@@ -217,6 +225,7 @@ body {
 
 <button class="btn btn-orange" onclick="startNewTurn()">Commencer un nouveau tour</button>
 <button class="btn btn-ghost" onclick="window.location.href='index.html'">Quitter la partie</button>
+</div>
 
 <script>
 function getGameData() {
@@ -231,7 +240,8 @@ function renderGameTracker() {
   const gameData = getGameData();
 
   if (!gameData.team) {
-    window.location.href = 'index.html';
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('noDataScreen').style.display = 'block';
     return;
   }
 
@@ -262,8 +272,7 @@ function renderGameTracker() {
 }
 
 function startNewTurn() {
-  const gameData = getGameData();
-  window.location.href = `character_selection.html?team=${gameData.team}`;
+  window.location.href = 'character_selection.html';
 }
 
 // Initialize on page load
