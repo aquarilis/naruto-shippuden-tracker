@@ -55,23 +55,68 @@ body { padding: 16px 14px 32px; }
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 12px;
+  padding: 10px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.9rem;
   cursor: pointer;
+  gap: 10px;
 }
 
 .history-item:active { opacity: 0.75; }
 
-.history-item-turn { color: var(--muted); font-weight: 700; }
+.history-item-turn { color: var(--muted); font-weight: 700; white-space: nowrap; }
 
 .history-item-character {
   flex: 1;
-  margin-left: 12px;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-left: 10px;
 }
+
+.history-char-img-wrap {
+  position: relative;
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+
+.history-char-img-wrap img {
+  display: block;
+  height: 64px;
+  width: auto;
+}
+
+.history-char-img-wrap .loser-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(220, 38, 38, 0.55);
+}
+
+.history-char-img-wrap.loser::after {
+  content: '✕';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(220, 38, 38, 0.55);
+}
+
+.history-vs { color: var(--muted); font-size: 0.75rem; font-weight: 700; }
 
 .history-item-result {
   font-weight: 700;
@@ -80,6 +125,7 @@ body { padding: 16px 14px 32px; }
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .result-win  { background: rgba(67, 160, 71, 0.3);  color: var(--heal); }
@@ -278,17 +324,36 @@ function renderGameTracker() {
     historyList.innerHTML = [...gameData.turns].reverse().map(turn => {
       const resultClass = `result-${turn.result}`;
       const resultText = turn.result === 'win' ? 'Victoire' : turn.result === 'loss' ? 'Défaite' : 'Match nul';
-      const matchup = `${turn.playerCharacter.name}${turn.opponent ? ` vs. ${turn.opponent}` : ''}`;
       const xpBadge = turn.result === 'win' && turn.exp
         ? (() => {
             const total = (turn.exp.xpCharacter || 0) + (turn.exp.xpMission || 0) + (turn.exp.xpSecondary || 0);
-            return total > 0 ? `<span style="font-size:0.72rem; color:var(--orange2); margin-left:6px;">+${total} XP</span>` : '';
+            return total > 0 ? `<span style="font-size:0.7rem; color:var(--orange2);">+${total} XP</span>` : '';
           })()
         : '';
+
+      // Determine who lost (to show red X overlay)
+      const playerLost = turn.result === 'loss';
+      const opponentLost = turn.result === 'win';
+
+      const playerImgSrc = turn.playerCharacter.roster_image ? `img/roster/${turn.playerCharacter.roster_image}` : null;
+      const opponentImgSrc = turn.opponentImage ? `img/roster/${turn.opponentImage}` : null;
+
+      const loserOverlay = `<div class="loser-overlay">✕</div>`;
+
+      const playerImgHtml = playerImgSrc
+        ? `<div class="history-char-img-wrap"><img src="${playerImgSrc}" alt="${turn.playerCharacter.name}">${playerLost ? loserOverlay : ''}</div>`
+        : `<span style="font-size:0.85rem;">${turn.playerCharacter.name}</span>`;
+
+      const opponentHtml = turn.opponent
+        ? (opponentImgSrc
+            ? `<span class="history-vs">vs</span><div class="history-char-img-wrap"><img src="${opponentImgSrc}" alt="${turn.opponent}">${opponentLost ? loserOverlay : ''}</div>`
+            : `<span class="history-vs">vs</span><span style="font-size:0.85rem;">${turn.opponent}</span>`)
+        : '';
+
       return `
         <div class="history-item" onclick="openLogModal(${turn.turnNumber})">
           <span class="history-item-turn">Tour ${turn.turnNumber}</span>
-          <span class="history-item-character">${matchup}${xpBadge}</span>
+          <span class="history-item-character">${playerImgHtml}${opponentHtml}${xpBadge}</span>
           <span class="history-item-result ${resultClass}">${resultText}</span>
         </div>
       `;

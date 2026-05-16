@@ -394,8 +394,8 @@ body { padding: 16px 14px 32px; }
 // ── State ──────────────────────────────────────────────
 let G = {};
 
-function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, playerImage) {
-  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent, opponentXp, playerImage });
+function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, playerImage, opponentImage) {
+  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent, opponentXp, playerImage, opponentImage });
 
   G = {
     name,
@@ -406,6 +406,7 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, pla
     opponent: opponent || null,
     opponentXp: opponentXp || 0,
     playerImage: playerImage || null,
+    opponentImage: opponentImage || null,
     round: 1,
     action: 1,
     log: []
@@ -659,9 +660,11 @@ function recordResult(result, xp) {
     playerCharacter: {
       name: G.name,
       hp: G.maxHP,
-      chakra: G.maxChakra
+      chakra: G.maxChakra,
+      roster_image: G.playerImage || null
     },
     opponent: G.opponent || null,
+    opponentImage: G.opponentImage || null,
     result: result,
     combatRounds: G.round,
     combatLog: [...G.log],
@@ -685,6 +688,7 @@ function initFromURL() {
   const opponent = params.get('opponent') || null;
   const opponentXp = parseInt(params.get('opponentXp')) || 0;
   const playerImage = params.get('playerImage') || null;
+  const opponentImage = params.get('opponentImage') || null;
 
   const gameData = JSON.parse(sessionStorage.getItem('gameData')) || {};
   const team = gameData.team || null;
@@ -703,7 +707,7 @@ function initFromURL() {
   const titleElem = document.getElementById('combatTitle');
   if (titleElem) titleElem.textContent = opponent ? `${name} vs. ${opponent}` : name;
 
-  startCombatWithParams(name, hp, chakra, opponent, opponentXp, playerImage);
+  startCombatWithParams(name, hp, chakra, opponent, opponentXp, playerImage, opponentImage);
 }
 
 // Initialize from URL parameters on page load
