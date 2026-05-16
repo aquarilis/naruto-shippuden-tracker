@@ -11,11 +11,14 @@ body { padding: 16px 14px 32px; }
 /* ── Camp cards ── */
 .cards-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
+  justify-content: center;
 }
 
 .card {
-  flex: 1;
+  flex: 1 1 180px; /* grow, shrink, but never narrower than 180px */
+  max-width: 320px;
   cursor: pointer;
   transition: transform 0.08s, border-color 0.12s;
   text-align: center;
