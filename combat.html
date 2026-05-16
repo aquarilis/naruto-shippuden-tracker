@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Naruto — Suivi de Combat</title>
+<style>
+:root {
+  --hp: #e53935;
+  --hp-dark: #8b0000;
+  --chakra: #1e88e5;
+  --chakra-dark: #0a3d7a;
+  --heal: #43a047;
+  --bg: #0e0e1a;
+  --card: #16182e;
+  --card2: #1e2040;
+  --border: #2a2d50;
+  --text: #e8e8f0;
+  --muted: #7a7da0;
+  --orange: #ff6d00;
+  --orange2: #ff9100;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding: 16px 14px 32px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.header h1 {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+}
+.header .sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+}
+.card-label {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ── Form inputs ── */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+input[type="text"], input[type="number"] {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 11px 14px;
+  outline: none;
+  -webkit-appearance: none;
+}
+input[type="number"] {
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+input:focus { border-color: var(--orange); }
+
+/* ── Buttons ── */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.12s, transform 0.08s;
+  text-align: center;
+}
+.btn:active { opacity: 0.75; transform: scale(0.97); }
+.btn-orange { background: linear-gradient(135deg, var(--orange), var(--orange2)); color: #fff; }
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 11px;
+}
+
+/* ── Stat bars ── */
+.stat { margin-bottom: 18px; }
+.stat:last-child { margin-bottom: 0; }
+.stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 7px;
+}
+.stat-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-hp { background: var(--hp); box-shadow: 0 0 6px var(--hp); }
+.dot-chakra { background: var(--chakra); box-shadow: 0 0 6px var(--chakra); }
+.stat-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.stat-max { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
+.bar-track {
+  height: 20px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.45s cubic-bezier(.4,0,.2,1);
+  min-width: 2px;
+}
+.bar-hp { background: linear-gradient(90deg, var(--hp-dark), var(--hp)); }
+.bar-chakra { background: linear-gradient(90deg, var(--chakra-dark), var(--chakra)); }
+
+/* ── Round / Tour indicators ── */
+.badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.badge {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.badge.active { border-color: var(--orange); color: var(--orange); }
+
+.pip-row { display: flex; gap: 6px; }
+.pip {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.pip.done { background: var(--muted); }
+.pip.active { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+
+/* ── Stepper ── */
+.stepper-wrap { margin-bottom: 14px; }
+.stepper-wrap label {
+  display: block;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+.stepper-wrap label .icon { margin-right: 4px; }
+.stepper {
+  display: flex;
+  align-items: center;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.stepper-wrap.hp-wrap .stepper { border-color: color-mix(in srgb, var(--hp) 40%, var(--border)); }
+.stepper-wrap.chakra-wrap .stepper { border-color: color-mix(in srgb, var(--chakra) 40%, var(--border)); }
+.stepper-wrap.heal-wrap .stepper { border-color: color-mix(in srgb, var(--heal) 40%, var(--border)); }
+.stepper button {
+  background: none; border: none;
+  color: var(--text);
+  font-size: 1.6rem; line-height: 1;
+  padding: 10px 18px;
+  cursor: pointer;
+  user-select: none;
+}
+.stepper input {
+  flex: 1; border: none; background: transparent;
+  color: var(--text);
+  font-size: 1.5rem; font-weight: 700;
+  text-align: center;
+  padding: 10px 0;
+  -webkit-appearance: none;
+}
+
+/* ── Chakra warning ── */
+.warn {
+  font-size: 0.8rem;
+  color: var(--chakra);
+  margin-top: -10px;
+  margin-bottom: 10px;
+  display: none;
+}
+
+/* ── Heal toggle ── */
+.heal-toggle {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--heal);
+  cursor: pointer;
+  padding: 6px;
+  margin-bottom: 10px;
+}
+
+/* ── Log ── */
+.log {
+  max-height: 160px;
+  overflow-y: auto;
+}
+.log-entry {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.45;
+}
+.log-entry:last-child { border-bottom: none; }
+.c-hp { color: var(--hp); }
+.c-chakra { color: var(--chakra); }
+.c-heal { color: var(--heal); }
+.c-round { color: var(--orange); font-weight: 700; }
+
+/* ── Overlay / Modal ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+.overlay.hidden { display: none; }
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 22px;
+  width: 100%; max-width: 360px;
+  text-align: center;
+}
+.modal-icon { font-size: 2.8rem; margin-bottom: 8px; }
+.modal-title {
+  font-size: 1.4rem; font-weight: 800;
+  color: var(--orange); margin-bottom: 6px;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.modal-body {
+  color: var(--muted); font-size: 0.9rem;
+  line-height: 1.6; margin-bottom: 22px;
+}
+.modal-body strong { color: var(--text); }
+
+/* ── End screen ── */
+#endScreen {
+  text-align: center;
+  padding-top: 20px;
+}
+.end-icon { font-size: 4rem; margin-bottom: 10px; }
+.end-title { font-size: 2rem; font-weight: 900; margin-bottom: 8px; }
+.end-sub { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px; }
+.end-stats {
+  display: flex; gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.end-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.85rem; color: var(--muted);
+}
+.end-stat strong { display: block; font-size: 1.5rem; font-weight: 800; color: var(--text); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SETUP ══════════════ -->
+<div id="setupScreen">
+  <div class="header">
+    <h1>Naruto</h1>
+    <div class="sub">Suivi de Combat</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Personnage</div>
+    <div class="field">
+      <label>Nom du Ninja (optionnel)</label>
+      <input type="text" id="ninjaName" placeholder="ex : Naruto, Sasuke…" autocomplete="off" autocorrect="off">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">❤️ Points de Vie</div>
+    <div class="field">
+      <label>PV maximum (valeur rouge sur la carte)</label>
+      <input type="number" id="setupHP" placeholder="ex : 50" min="1" inputmode="numeric">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">💙 Chakra</div>
+    <div class="field">
+      <label>Chakra 1 (valeur bleue sur la carte)</label>
+      <input type="number" id="setupC1" placeholder="ex : 15" min="1" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>Chakra 2 — optionnel (Naruto, Bee…)</label>
+      <input type="number" id="setupC2" placeholder="0" min="0" inputmode="numeric">
+    </div>
+  </div>
+
+  <button class="btn btn-orange" onclick="startCombat()">Commencer le combat →</button>
+</div>
+
+<!-- ══════════════ COMBAT ══════════════ -->
+<div id="combatScreen" class="hidden">
+  <div class="header">
+    <h1 id="combatTitle">Combat</h1>
+    <div class="sub" id="combatSub">Round 1 — Tour 1 / 3</div>
+  </div>
+
+  <!-- Round + Tour badges -->
+  <div class="badge-row">
+    <div>
+      <div class="card-label" style="margin-bottom:5px;">Rounds</div>
+      <div class="pip-row" id="roundPips"></div>
+    </div>
+    <div style="text-align:right;">
+      <div class="card-label" style="margin-bottom:5px; text-align:right;">Tours du round</div>
+      <div class="pip-row" id="tourPips" style="justify-content:flex-end;"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="card">
+    <div class="stat">
+      <div class="stat-head">
+        <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+        <div>
+          <span class="stat-num" id="dispHP">–</span>
+          <span class="stat-max"> / <span id="dispMaxHP">–</span></span>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-hp" id="barHP"></div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-head">
+        <div class="stat-name"><div class="dot dot-chakra"></div>Chakra</div>
+        <div>
+          <span class="stat-num" id="dispChakra">–</span>
+          <span class="stat-max"> / <span id="dispMaxChakra">–</span></span>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-chakra" id="barChakra"></div></div>
+    </div>
+  </div>
+
+  <!-- Turn inputs -->
+  <div class="card" id="tourCard">
+    <div class="card-label">Tour <span id="tourLabel">1</span> / 3 — Saisir les effets</div>
+
+    <div class="stepper-wrap chakra-wrap">
+      <label><span class="icon">💙</span> Chakra consommé par l'attaque</label>
+      <div class="stepper">
+        <button onclick="step('inputChakra', -1)">−</button>
+        <input type="number" id="inputChakra" value="0" min="0" inputmode="numeric">
+        <button onclick="step('inputChakra', 1)">+</button>
+      </div>
+    </div>
+    <div class="warn" id="chakraWarn">⚠️ Chakra insuffisant — vous ne pouvez pas jouer cette technique</div>
+
+    <div class="stepper-wrap hp-wrap">
+      <label><span class="icon">❤️</span> Dégâts reçus</label>
+      <div class="stepper">
+        <button onclick="step('inputDmg', -1)">−</button>
+        <input type="number" id="inputDmg" value="0" min="0" inputmode="numeric">
+        <button onclick="step('inputDmg', 1)">+</button>
+      </div>
+    </div>
+
+    <div id="healSection" class="hidden">
+      <div class="stepper-wrap heal-wrap">
+        <label><span class="icon">💚</span> PV récupérés (carte soin)</label>
+        <div class="stepper">
+          <button onclick="step('inputHeal', -1)">−</button>
+          <input type="number" id="inputHeal" value="0" min="0" inputmode="numeric">
+          <button onclick="step('inputHeal', 1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="heal-toggle" id="healToggle" onclick="toggleHeal()">+ Utiliser une carte soin</div>
+
+    <button class="btn btn-orange" onclick="confirmTour()">Valider le tour →</button>
+  </div>
+
+  <!-- Log -->
+  <div class="card">
+    <div class="card-label">Historique du combat</div>
+    <div class="log" id="log"><div class="log-entry" style="color:var(--muted); font-style:italic;">Le combat commence…</div></div>
+  </div>
+
+  <button class="btn btn-ghost" onclick="resetGame()" style="margin-top:4px;">↺ Nouvelle partie</button>
+</div>
+
+<!-- ══════════════ END SCREEN ══════════════ -->
+<div id="endScreen" class="hidden">
+  <div class="header">
+    <h1>Naruto</h1>
+    <div class="sub">Fin du Combat</div>
+  </div>
+  <div class="card" style="text-align:center; padding: 28px 20px;">
+    <div class="end-icon" id="endIcon"></div>
+    <div class="end-title" id="endTitle"></div>
+    <div class="end-sub" id="endSub"></div>
+    <div class="end-stats" id="endStats"></div>
+    <button class="btn btn-orange" onclick="resetGame()">↺ Nouvelle partie</button>
+  </div>
+</div>
+
+<!-- ══════════════ ROUND TRANSITION OVERLAY ══════════════ -->
+<div class="overlay hidden" id="roundOverlay">
+  <div class="modal">
+    <div class="modal-icon">🌀</div>
+    <div class="modal-title" id="overlayTitle">Nouveau Round !</div>
+    <div class="modal-body" id="overlayBody"></div>
+    <button class="btn btn-orange" onclick="closeOverlay()">Continuer →</button>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────
+let G = {};
+
+function startCombat() {
+  const name = document.getElementById('ninjaName').value.trim() || 'Ninja';
+  const maxHP = parseInt(document.getElementById('setupHP').value) || 0;
+  const c1 = parseInt(document.getElementById('setupC1').value) || 0;
+  const c2 = parseInt(document.getElementById('setupC2').value) || 0;
+  const maxChakra = c1 + c2;
+
+  if (maxHP <= 0 || maxChakra <= 0) {
+    alert('Veuillez saisir des PV et un Chakra valides (> 0).');
+    return;
+  }
+
+  G = {
+    name,
+    maxHP,
+    maxChakra,
+    hp: maxHP,
+    chakra: maxChakra,
+    round: 1,
+    tour: 1,
+    log: []
+  };
+
+  hide('setupScreen');
+  show('combatScreen');
+  hide('endScreen');
+  hide('roundOverlay');
+  renderCombat();
+}
+
+// ── Render ─────────────────────────────────────────────
+function renderCombat() {
+  document.getElementById('combatTitle').textContent = G.name;
+  document.getElementById('combatSub').textContent = `Round ${G.round}/3 — Tour ${G.tour}/3`;
+  document.getElementById('tourLabel').textContent = G.tour;
+
+  // HP
+  document.getElementById('dispHP').textContent = G.hp;
+  document.getElementById('dispMaxHP').textContent = G.maxHP;
+  document.getElementById('barHP').style.width = pct(G.hp, G.maxHP) + '%';
+
+  // Chakra
+  document.getElementById('dispChakra').textContent = G.chakra;
+  document.getElementById('dispMaxChakra').textContent = G.maxChakra;
+  // Bar: relative to maxChakra, capped at 100% visually
+  const chakraPct = Math.min(100, pct(G.chakra, G.maxChakra));
+  document.getElementById('barChakra').style.width = chakraPct + '%';
+
+  // Pips
+  renderPips('roundPips', 3, G.round);
+  renderPips('tourPips', 3, G.tour);
+
+  // Reset inputs
+  resetInputs();
+  renderLog();
+}
+
+function renderPips(id, total, current) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  for (let i = 1; i <= total; i++) {
+    const d = document.createElement('div');
+    d.className = 'pip' + (i < current ? ' done' : i === current ? ' active' : '');
+    el.appendChild(d);
+  }
+}
+
+function renderLog() {
+  const el = document.getElementById('log');
+  if (G.log.length === 0) return;
+  el.innerHTML = [...G.log].reverse()
+    .map(e => `<div class="log-entry">${e}</div>`)
+    .join('');
+}
+
+function resetInputs() {
+  document.getElementById('inputChakra').value = 0;
+  document.getElementById('inputDmg').value = 0;
+  document.getElementById('inputHeal').value = 0;
+  document.getElementById('chakraWarn').style.display = 'none';
+  // Reset heal section
+  document.getElementById('healSection').classList.add('hidden');
+  document.getElementById('healToggle').textContent = '+ Utiliser une carte soin';
+}
+
+// ── Tour logic ─────────────────────────────────────────
+function confirmTour() {
+  const chakraSpent = Math.max(0, parseInt(document.getElementById('inputChakra').value) || 0);
+  const dmg         = Math.max(0, parseInt(document.getElementById('inputDmg').value) || 0);
+  const heal        = Math.max(0, parseInt(document.getElementById('inputHeal').value) || 0);
+
+  // Warn but don't block — the game says you can't play the technique
+  // but we still apply it so the player tracks the outcome
+  const warn = document.getElementById('chakraWarn');
+  if (chakraSpent > G.chakra) {
+    warn.style.display = 'block';
+  }
+
+  G.chakra = Math.max(0, G.chakra - chakraSpent);
+  G.hp     = Math.max(0, G.hp - dmg + heal);
+  if (heal > 0) G.hp = Math.min(G.maxHP, G.hp); // cap at max
+
+  // Build log line
+  const parts = [];
+  if (chakraSpent > 0) parts.push(`<span class="c-chakra">−${chakraSpent} PC</span>`);
+  if (dmg > 0)         parts.push(`<span class="c-hp">−${dmg} PV</span>`);
+  if (heal > 0)        parts.push(`<span class="c-heal">+${heal} PV (soin)</span>`);
+  const effect = parts.length ? parts.join(', ') : 'aucun effet';
+  G.log.push(`<b>R${G.round}T${G.tour}</b> ${effect} → ❤️${G.hp} 💙${G.chakra}`);
+
+  // KO ?
+  if (G.hp <= 0) {
+    endCombat('ko');
+    return;
+  }
+
+  // Advance
+  if (G.tour < 3) {
+    G.tour++;
+    renderCombat();
+  } else {
+    endOfRound();
+  }
+}
+
+function endOfRound() {
+  if (G.round >= 3) {
+    endCombat('egalite');
+    return;
+  }
+
+  const before = G.chakra;
+  G.chakra += G.maxChakra;
+  const nextRound = G.round + 1;
+
+  // Show overlay
+  document.getElementById('overlayTitle').textContent = `Round ${nextRound} !`;
+  document.getElementById('overlayBody').innerHTML =
+    `Fin du Round <strong>${G.round}</strong>.<br><br>` +
+    `<span class="c-chakra">Recharge chakra</span> : ${before} + ${G.maxChakra} = <strong>${G.chakra} PC</strong><br><br>` +
+    `Les PV ne sont pas rechargés entre les rounds.`;
+
+  G.log.push(`<span class="c-round">── Fin Round ${G.round} • Début Round ${nextRound} • Chakra : ${before} + ${G.maxChakra} = ${G.chakra} PC ──</span>`);
+
+  G.round = nextRound;
+  G.tour = 1;
+
+  show('roundOverlay');
+}
+
+function closeOverlay() {
+  hide('roundOverlay');
+  renderCombat();
+}
+
+// ── End ────────────────────────────────────────────────
+function endCombat(reason) {
+  renderCombat();
+  hide('combatScreen');
+  hide('roundOverlay');
+  show('endScreen');
+
+  const rounds = G.round;
+  if (reason === 'ko') {
+    document.getElementById('endIcon').textContent = '💀';
+    document.getElementById('endTitle').textContent = 'KO !';
+    document.getElementById('endTitle').style.color = 'var(--hp)';
+    document.getElementById('endSub').textContent =
+      `${G.name} est tombé au Round ${rounds}, Tour ${G.tour}. Le combat est terminé.`;
+  } else {
+    document.getElementById('endIcon').textContent = '⚖️';
+    document.getElementById('endTitle').textContent = 'Égalité';
+    document.getElementById('endTitle').style.color = 'var(--orange)';
+    document.getElementById('endSub').textContent =
+      `Les 3 rounds sont terminés. Aucun des deux Ninjas n'a perdu tous ses PV — personne ne remporte la mission.`;
+  }
+
+  document.getElementById('endStats').innerHTML =
+    `<div class="end-stat"><strong style="color:var(--hp)">${G.hp}</strong> PV restants</div>` +
+    `<div class="end-stat"><strong style="color:var(--chakra)">${G.chakra}</strong> PC restants</div>` +
+    `<div class="end-stat"><strong>${rounds}</strong> rounds joués</div>`;
+}
+
+// ── Helpers ────────────────────────────────────────────
+function pct(val, max) {
+  if (max <= 0) return 0;
+  return Math.max(0, Math.min(100, (val / max) * 100));
+}
+
+function step(id, delta) {
+  const el = document.getElementById(id);
+  el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
+  // Live chakra warning
+  if (id === 'inputChakra') {
+    const warn = document.getElementById('chakraWarn');
+    warn.style.display = (parseInt(el.value) || 0) > G.chakra ? 'block' : 'none';
+  }
+}
+
+function toggleHeal() {
+  const s = document.getElementById('healSection');
+  const t = document.getElementById('healToggle');
+  const hidden = s.classList.toggle('hidden');
+  t.textContent = hidden ? '+ Utiliser une carte soin' : '− Annuler le soin';
+}
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function resetGame() {
+  hide('combatScreen');
+  hide('endScreen');
+  hide('roundOverlay');
+  show('setupScreen');
+  document.getElementById('ninjaName').value = '';
+  document.getElementById('setupHP').value = '';
+  document.getElementById('setupC1').value = '';
+  document.getElementById('setupC2').value = '';
+}
+</script>
+</body>
+</html>
