@@ -10,28 +10,6 @@ body { padding: 16px 14px 32px; }
 
 .header h1 { font-size: clamp(0.8rem, 3.5vw, 1.3rem); }
 
-/* ── Stats preview ── */
-.stats-grid {
-  display: flex;
-  gap: 12px;
-}
-
-.stat-preview {
-  flex: 1;
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.stat-icon { font-size: 1.3rem; }
-.stat-preview-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-.stat-preview-value { font-size: 1.8rem; font-weight: 800; color: var(--text); }
-
 /* ── Step indicator ── */
 .step-indicator {
   display: flex;
@@ -55,7 +33,51 @@ body { padding: 16px 14px 32px; }
   text-transform: uppercase;
 }
 
-/* ── Selected ninja summary (step 2) ── */
+/* ── Roster grid ── */
+.roster-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.roster-card {
+  position: relative;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  background: var(--card);
+  display: inline-block;
+  width: auto;
+}
+
+.roster-card:active { transform: scale(0.97); }
+
+.roster-card.selected {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(255,109,0,0.35);
+}
+
+.roster-card.unavailable {
+  cursor: default;
+  opacity: 1;
+}
+
+.roster-card img {
+  display: block;
+  height: 320px;
+  width: auto;
+}
+
+.roster-card.unavailable img {
+  filter: grayscale(1) brightness(0.45);
+}
+
+
+/* ── Selected recap (step 2) ── */
 .selected-summary {
   background: var(--card2);
   border: 1px solid var(--border);
@@ -63,11 +85,18 @@ body { padding: 16px 14px 32px; }
   padding: 10px 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 4px;
 }
+.selected-summary img {
+  width: auto;
+  height: 80px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: block;
+}
 .selected-summary-name { font-weight: 700; font-size: 0.95rem; }
-.selected-summary-stats { font-size: 0.8rem; color: var(--muted); }
+.selected-summary-stats { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -84,48 +113,22 @@ body { padding: 16px 14px 32px; }
   </div>
 
   <div class="step-indicator">
-    <div class="step-dot active" id="dot1a"></div>
+    <div class="step-dot active"></div>
     <div class="step-label">Votre ninja</div>
     <div style="width:24px; height:1px; background:var(--border);"></div>
-    <div class="step-dot" id="dot1b"></div>
+    <div class="step-dot"></div>
     <div class="step-label">Adversaire</div>
   </div>
 
-  <div id="errorMsg1" class="error-msg"></div>
+  <div class="card-label" id="playerCardLabel" style="margin-bottom:12px;">Ninja</div>
 
-  <div class="card">
-    <div class="card-label" id="playerCardLabel">Ninja</div>
-    <div class="field">
-      <select id="characterSelect" onchange="onCharacterChange()">
-        <option value="">— Sélectionner —</option>
-      </select>
-    </div>
-    <div id="statsPreview" style="display:none; margin-top:12px;">
-      <div class="stats-grid">
-        <div class="stat-preview">
-          <span class="stat-icon">❤️</span>
-          <span class="stat-preview-label">PV</span>
-          <span class="stat-preview-value" id="previewHP">—</span>
-        </div>
-        <div class="stat-preview">
-          <span class="stat-icon">💙</span>
-          <span class="stat-preview-label">Chakra</span>
-          <span class="stat-preview-value" id="previewChakra">—</span>
-        </div>
-        <div class="stat-preview">
-          <span class="stat-icon">⭐</span>
-          <span class="stat-preview-label">XP</span>
-          <span class="stat-preview-value" id="previewXP">—</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="noCharMsg" class="card" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
+  <div id="noCharMsg" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
     Aucun personnage disponible pour ce tour.
   </div>
 
-  <button class="btn btn-orange" id="nextBtn" onclick="goToStep2()" disabled style="opacity:0.4;">Passer à la sélection de l'adversaire →</button>
+  <div class="roster-grid" id="characterGrid"></div>
+
+  <button class="btn btn-orange" id="nextBtn" onclick="goToStep2()" disabled style="opacity:0.4;">Suivant →</button>
   <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
 </div>
 
@@ -149,50 +152,58 @@ body { padding: 16px 14px 32px; }
   </div>
 
   <!-- Selected ninja recap -->
-  <div class="card" style="padding: 12px 16px;">
+  <div class="card" style="padding: 12px 16px; margin-bottom:16px;">
     <div class="card-label" style="margin-bottom:8px;">Votre ninja</div>
     <div class="selected-summary">
-      <span class="selected-summary-name" id="summaryName">—</span>
-      <span class="selected-summary-stats" id="summaryStats">—</span>
-    </div>
-  </div>
-
-  <div id="errorMsg2" class="error-msg"></div>
-
-  <div class="card">
-    <div class="card-label" id="opponentCardLabel">Adversaire</div>
-    <div class="field">
-      <select id="opponentSelect" onchange="onOpponentChange()">
-        <option value="">— Sélectionner —</option>
-      </select>
-    </div>
-    <div id="opponentPreview" style="display:none; margin-top:12px;">
-      <div class="stats-grid">
-        <div class="stat-preview">
-          <span class="stat-icon">❤️</span>
-          <span class="stat-preview-label">PV</span>
-          <span class="stat-preview-value" id="opponentPreviewHP">—</span>
-        </div>
-        <div class="stat-preview">
-          <span class="stat-icon">💙</span>
-          <span class="stat-preview-label">Chakra</span>
-          <span class="stat-preview-value" id="opponentPreviewChakra">—</span>
-        </div>
-        <div class="stat-preview">
-          <span class="stat-icon">⭐</span>
-          <span class="stat-preview-label">XP</span>
-          <span class="stat-preview-value" id="opponentPreviewXP">—</span>
-        </div>
+      <img id="summaryImg" src="" alt="">
+      <div>
+        <div class="selected-summary-name" id="summaryName">—</div>
+        <div class="selected-summary-stats" id="summaryStats">—</div>
       </div>
     </div>
   </div>
 
-  <div id="noOpponentMsg" class="card" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
+  <div class="card-label" id="opponentCardLabel" style="margin-bottom:12px;">Adversaire</div>
+
+  <div id="noOpponentMsg" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
     Aucun adversaire disponible pour ce tour.
   </div>
 
-  <button class="btn btn-orange" id="startBtn" onclick="startCombat()" disabled style="opacity:0.4;">Commencer le combat →</button>
+  <div class="roster-grid" id="opponentGrid"></div>
+
+  <button class="btn btn-orange" id="startBtn" onclick="goToConfirm()" disabled style="opacity:0.4;">Suivant →</button>
   <button class="btn btn-ghost" onclick="goBackToStep1()" style="margin-top:8px;">← Retour</button>
+</div>
+
+<!-- ══════════════ STEP 3 : CONFIRMATION ══════════════ -->
+<div id="step3Screen" class="hidden">
+  <div class="header">
+    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <div class="header-center">
+      <h1>Confirmation</h1>
+      <div class="sub" id="step3Subtitle">Tour —</div>
+    </div>
+    <img id="teamLogo3" src="" alt="Team" class="header-logo-right">
+  </div>
+
+  <div style="display:flex; gap:16px; align-items:flex-start; justify-content:center; margin-bottom:20px;">
+    <div style="text-align:center; flex:1;">
+      <div class="card-label" style="margin-bottom:8px;">Votre ninja</div>
+      <div style="display:inline-block; border-radius:12px; border:2px solid var(--orange); overflow:hidden;">
+        <img id="confirmPlayerImg" src="" alt="" style="display:block; height:320px; width:auto;">
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; padding-top:140px; font-size:1.5rem; font-weight:900; color:var(--muted);">VS</div>
+    <div style="text-align:center; flex:1;">
+      <div class="card-label" style="margin-bottom:8px;">Adversaire</div>
+      <div style="display:inline-block; border-radius:12px; border:2px solid var(--hp); overflow:hidden;">
+        <img id="confirmOpponentImg" src="" alt="" style="display:block; height:320px; width:auto;">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-orange" onclick="startCombat()">⚔️ Commencer le combat →</button>
+  <button class="btn btn-ghost" onclick="goBackToStep2()" style="margin-top:8px;">← Retour</button>
 </div>
 
 <script>
@@ -214,30 +225,81 @@ function isAvailable(c, currentTurn) {
   return true;
 }
 
-function populateSelect(selectId, characters, currentTurn) {
-  const select = document.getElementById(selectId);
-  select.innerHTML = '<option value="">— Sélectionner —</option>';
+function unavailableReason(c, currentTurn) {
+  if (c.available_from_turn > currentTurn) return `Disponible à partir du tour ${c.available_from_turn}`;
+  return `Disponible jusqu'au tour ${c.available_until_turn}`;
+}
+
+function buildRosterGrid(gridId, characters, currentTurn, onSelect) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
   const sorted = [...characters].sort((a, b) =>
     (isAvailable(a, currentTurn) ? 0 : 1) - (isAvailable(b, currentTurn) ? 0 : 1)
   );
   sorted.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.name;
-    if (!isAvailable(c, currentTurn)) {
-      let reason;
-      if (c.available_from_turn > currentTurn) {
-        reason = `disponible à partir du tour ${c.available_from_turn}`;
-      } else {
-        reason = `disponible jusqu'au tour ${c.available_until_turn}`;
-      }
-      opt.textContent = `${c.name} (${reason})`;
-      opt.disabled = true;
-      opt.style.color = '#7a7da0';
-    } else {
-      opt.textContent = c.name;
+    const available = isAvailable(c, currentTurn);
+    const card = document.createElement('div');
+    card.className = 'roster-card' + (available ? '' : ' unavailable');
+    card.dataset.name = c.name;
+    if (!available) card.title = unavailableReason(c, currentTurn);
+
+    const img = document.createElement('img');
+    img.src = c.roster_image ? `img/roster/${c.roster_image}` : '';
+    img.alt = c.name;
+    img.loading = 'lazy';
+
+    card.appendChild(img);
+
+    if (!available) {
+      const caption = document.createElement('div');
+      caption.className = 'roster-card-caption';
+      caption.textContent = unavailableReason(c, currentTurn);
+      card.appendChild(caption);
     }
-    select.appendChild(opt);
+
+    if (available) {
+      card.addEventListener('click', () => onSelect(c, card, gridId));
+    }
+
+    grid.appendChild(card);
   });
+}
+
+function selectCard(character, card, gridId) {
+  document.querySelectorAll(`#${gridId} .roster-card`).forEach(el => el.classList.remove('selected'));
+  card.classList.add('selected');
+  return character;
+}
+
+function onCharacterSelect(c, card) {
+  selectedCharacter = selectCard(c, card, 'characterGrid');
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = false;
+  nextBtn.style.opacity = '1';
+}
+
+function onOpponentSelect(c, card) {
+  selectedOpponent = selectCard(c, card, 'opponentGrid');
+  const startBtn = document.getElementById('startBtn');
+  startBtn.disabled = false;
+  startBtn.style.opacity = '1';
+}
+
+function goToConfirm() {
+  if (!selectedCharacter || !selectedOpponent) return;
+  document.getElementById('confirmPlayerImg').src = selectedCharacter.roster_image
+    ? `img/roster/${selectedCharacter.roster_image}` : '';
+  document.getElementById('confirmOpponentImg').src = selectedOpponent.roster_image
+    ? `img/roster/${selectedOpponent.roster_image}` : '';
+  document.getElementById('step2Screen').classList.add('hidden');
+  document.getElementById('step3Screen').classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+function goBackToStep2() {
+  document.getElementById('step3Screen').classList.add('hidden');
+  document.getElementById('step2Screen').classList.remove('hidden');
+  window.scrollTo(0, 0);
 }
 
 function initializePage() {
@@ -251,77 +313,47 @@ function initializePage() {
   const logoPath = getTeamLogoPath(gameData.team);
   document.getElementById('teamLogo1').src = logoPath;
   document.getElementById('teamLogo2').src = logoPath;
+  document.getElementById('teamLogo3').src = logoPath;
 
   const currentTurn = gameData.turns.length + 1;
   const tourLabel = `Tour ${currentTurn}`;
   document.getElementById('step1Subtitle').textContent = tourLabel;
   document.getElementById('step2Subtitle').textContent = tourLabel;
+  document.getElementById('step3Subtitle').textContent = tourLabel;
 
   const myTeam = gameData.team.toLowerCase();
   const opponentTeam = myTeam === 'alliance' ? 'akatsuki' : 'alliance';
 
-  const myTeamLabel = myTeam === 'alliance' ? "Ninja de l'Alliance Shinobi" : "Ninja de l'Akatsuki";
-  const opponentTeamLabel = opponentTeam === 'alliance' ? "Ninja de l'Alliance Shinobi" : "Ninja de l'Akatsuki";
-
-  document.getElementById('playerCardLabel').textContent = myTeamLabel;
-  document.getElementById('opponentCardLabel').textContent = opponentTeamLabel;
+  document.getElementById('playerCardLabel').textContent =
+    myTeam === 'alliance' ? "Ninja de l'Alliance Shinobi" : "Ninja de l'Akatsuki";
+  document.getElementById('opponentCardLabel').textContent =
+    opponentTeam === 'alliance' ? "Ninja de l'Alliance Shinobi" : "Ninja de l'Akatsuki";
 
   const myRoster = roster.filter(c => c.team.toLowerCase() === myTeam);
   const opponentRoster = roster.filter(c => c.team.toLowerCase() === opponentTeam);
 
   if (myRoster.length === 0) {
-    document.getElementById('characterSelect').parentElement.style.display = 'none';
     document.getElementById('noCharMsg').style.display = 'block';
   } else {
-    populateSelect('characterSelect', myRoster, currentTurn);
+    buildRosterGrid('characterGrid', myRoster, currentTurn, onCharacterSelect);
   }
 
   if (opponentRoster.length === 0) {
-    document.getElementById('opponentSelect').parentElement.style.display = 'none';
     document.getElementById('noOpponentMsg').style.display = 'block';
   } else {
-    populateSelect('opponentSelect', opponentRoster, currentTurn);
+    buildRosterGrid('opponentGrid', opponentRoster, currentTurn, onOpponentSelect);
   }
-}
-
-function renderStatsPreview(character, previewId, hpId, chakraId, xpId) {
-  const preview = document.getElementById(previewId);
-  if (!character) {
-    preview.style.display = 'none';
-    return;
-  }
-  document.getElementById(hpId).textContent = character.hp;
-  document.getElementById(chakraId).textContent = character.extra_mp
-    ? `${character.mp}+${character.extra_mp}`
-    : character.mp;
-  if (xpId) document.getElementById(xpId).textContent = character.xp ?? '—';
-  preview.style.display = 'block';
-}
-
-function onCharacterChange() {
-  const name = document.getElementById('characterSelect').value;
-  selectedCharacter = roster.find(c => c.name === name) || null;
-  renderStatsPreview(selectedCharacter, 'statsPreview', 'previewHP', 'previewChakra', 'previewXP');
-  const nextBtn = document.getElementById('nextBtn');
-  nextBtn.disabled = !selectedCharacter;
-  nextBtn.style.opacity = selectedCharacter ? '1' : '0.4';
-}
-
-function onOpponentChange() {
-  const name = document.getElementById('opponentSelect').value;
-  selectedOpponent = roster.find(c => c.name === name) || null;
-  renderStatsPreview(selectedOpponent, 'opponentPreview', 'opponentPreviewHP', 'opponentPreviewChakra', 'opponentPreviewXP');
-  const startBtn = document.getElementById('startBtn');
-  startBtn.disabled = !selectedOpponent;
-  startBtn.style.opacity = selectedOpponent ? '1' : '0.4';
 }
 
 function goToStep2() {
   if (!selectedCharacter) return;
 
   const totalChakra = (selectedCharacter.mp || 0) + (selectedCharacter.extra_mp || 0);
+  document.getElementById('summaryImg').src = selectedCharacter.roster_image
+    ? `img/roster/${selectedCharacter.roster_image}` : '';
   document.getElementById('summaryName').textContent = selectedCharacter.name;
-  document.getElementById('summaryStats').textContent = `❤️ ${selectedCharacter.hp} PV · 💙 ${totalChakra} PC · ⭐ ${selectedCharacter.xp ?? 0} XP`;
+  document.getElementById('summaryStats').textContent =
+    `❤️ ${selectedCharacter.hp} PV · 💙 ${totalChakra} PC · ⭐ ${selectedCharacter.xp ?? 0} XP`;
 
   document.getElementById('step1Screen').classList.add('hidden');
   document.getElementById('step2Screen').classList.remove('hidden');
@@ -350,13 +382,12 @@ function startCombat() {
 }
 
 const ROSTER_FALLBACK = [
-  {"name":"Naruto","team":"alliance","hp":12,"mp":5,"extra_mp":1,"xp":3,"available_from_turn":1,"available_until_turn":null},
-  {"name":"Sasuke","team":"alliance","hp":10,"mp":3,"extra_mp":null,"xp":2,"available_from_turn":1,"available_until_turn":1},
-  {"name":"Naruto 2","team":"alliance","hp":9,"mp":2,"extra_mp":null,"xp":4,"available_from_turn":5,"available_until_turn":null},
-  {"name":"Kakashi","team":"alliance","hp":10,"mp":3,"extra_mp":null,"xp":3,"available_from_turn":1,"available_until_turn":null},
-  {"name":"Kisame","team":"akatsuki","hp":15,"mp":5,"extra_mp":2,"xp":5,"available_from_turn":1,"available_until_turn":null},
-  {"name":"Itachi","team":"akatsuki","hp":16,"mp":4,"extra_mp":null,"xp":6,"available_from_turn":1,"available_until_turn":null},
-  {"name":"Obito","team":"akatsuki","hp":12,"mp":2,"extra_mp":null,"xp":7,"available_from_turn":3,"available_until_turn":null}
+  {"name":"Tobirama Senju","team":"alliance","hp":72,"mp":22,"extra_mp":null,"xp":5,"available_from_turn":1,"available_until_turn":3,"roster_image":"tobirama_senju.png"},
+  {"name":"Hashirama Senju","team":"alliance","hp":74,"mp":23,"extra_mp":null,"xp":5,"available_from_turn":1,"available_until_turn":4,"roster_image":"hashirama_senju.png"},
+  {"name":"Minato Namikaze","team":"alliance","hp":75,"mp":24,"extra_mp":2,"xp":5,"available_from_turn":2,"available_until_turn":2,"roster_image":"minato_namikaze.png"},
+  {"name":"Mei Terumi","team":"akatsuki","hp":57,"mp":17,"extra_mp":null,"xp":4,"available_from_turn":1,"available_until_turn":null,"roster_image":"mei_terumi.png"},
+  {"name":"Tsunade","team":"akatsuki","hp":58,"mp":17,"extra_mp":null,"xp":4,"available_from_turn":1,"available_until_turn":3,"roster_image":"tsunade.png"},
+  {"name":"Naruo Uzumaki","team":"akatsuki","hp":67,"mp":22,"extra_mp":5,"xp":4,"available_from_turn":2,"available_until_turn":4,"roster_image":"naruto_uzumaki_deck_3.png"}
 ];
 
 window.addEventListener('load', () => {
