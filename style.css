@@ -39,31 +39,32 @@ body {
 /* ── Header 3 zones ── */
 .header {
   display: grid;
-  grid-template-columns: 100px 1fr 100px;
+  grid-template-columns: min(100px, 18vw) 1fr min(100px, 18vw);
   align-items: center;
   margin-bottom: 20px;
-  min-height: 100px;
+  min-height: min(100px, 18vw);
 }
 
 .header-logo-left {
-  height: 100px;
+  height: min(100px, 18vw);
   width: auto;
 }
 
 .header-logo-right {
-  height: 100px;
+  height: min(100px, 18vw);
   width: auto;
   justify-self: end;
 }
 
 .header-center {
   text-align: center;
+  padding: 0 8px;
 }
 
 .header h1 {
-  font-size: 1.5rem;
+  font-size: clamp(0.85rem, 4vw, 1.5rem);
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: clamp(0px, 0.5vw, 2px);
   background: linear-gradient(135deg, var(--orange), var(--orange2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -73,33 +74,11 @@ body {
 }
 
 .header .sub {
-  font-size: 0.75rem;
+  font-size: clamp(0.6rem, 2vw, 0.75rem);
   color: var(--muted);
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-top: 4px;
-}
-
-@media (max-width: 480px) {
-  .header {
-    grid-template-columns: 60px 1fr 60px;
-    min-height: 60px;
-  }
-
-  .header-logo-left,
-  .header-logo-right {
-    height: 60px;
-  }
-
-  .header h1 {
-    font-size: 1rem;
-    letter-spacing: 1px;
-  }
-
-  .header .sub {
-    font-size: 0.65rem;
-    letter-spacing: 0.5px;
-  }
 }
 
 /* ── Cards ── */

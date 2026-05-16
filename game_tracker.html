@@ -8,11 +8,7 @@
 <style>
 body { padding: 16px 14px 32px; }
 
-.header h1 { font-size: 1.8rem; }
-
-@media (max-width: 480px) {
-  .header h1 { font-size: 1.1rem; }
-}
+.header h1 { font-size: clamp(1rem, 4.5vw, 1.8rem); }
 
 /* ── Stats section ── */
 .stats {
