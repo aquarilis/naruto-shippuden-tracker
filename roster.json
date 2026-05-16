@@ -21,7 +21,7 @@
         "hp": 9,
         "mp": 2,
         "extra_mp": null,
-        "available_from_turn": 2
+        "available_from_turn": 5
     },
     {
         "name": "Kakashi",
@@ -53,6 +53,6 @@
         "hp": 12,
         "mp": 2,
         "extra_mp": null,
-        "available_from_turn": 2
+        "available_from_turn": 3
     }
 ]

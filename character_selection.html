@@ -277,7 +277,10 @@ function getTeamLogoPath(team) {
 function populateSelect(selectId, characters, currentTurn) {
   const select = document.getElementById(selectId);
   select.innerHTML = '<option value="">— Sélectionner —</option>';
-  characters.forEach(c => {
+  const sorted = [...characters].sort((a, b) =>
+    (a.available_from_turn <= currentTurn ? 0 : 1) - (b.available_from_turn <= currentTurn ? 0 : 1)
+  );
+  sorted.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.name;
     if (c.available_from_turn > currentTurn) {
