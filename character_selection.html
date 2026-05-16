@@ -36,10 +36,12 @@ body { padding: 16px 14px 32px; }
 /* ── Roster grid ── */
 .roster-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
   margin-bottom: 20px;
-  justify-content: center;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .roster-card {
