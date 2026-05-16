@@ -422,21 +422,15 @@ function renderCombat() {
   document.getElementById('labelActions').textContent = `Action ${G.action}/3`;
   document.getElementById('actionLabel').textContent = G.action;
 
-  // HP
-  console.log('Setting HP:', G.hp, '/', G.maxHP);
+  // HP — bar capped at 100% visually, number shows real value (can exceed max with renfort)
   document.getElementById('dispHP').textContent = G.hp;
   document.getElementById('dispMaxHP').textContent = G.maxHP;
-  document.getElementById('barHP').style.width = pct(G.hp, G.maxHP) + '%';
-  console.log('dispHP element value:', document.getElementById('dispHP').textContent);
+  document.getElementById('barHP').style.width = Math.min(100, pct(G.hp, G.maxHP)) + '%';
 
-  // Chakra
-  console.log('Setting Chakra:', G.chakra, '/', G.maxChakra);
+  // Chakra — same logic
   document.getElementById('dispChakra').textContent = G.chakra;
   document.getElementById('dispMaxChakra').textContent = G.maxChakra;
-  // Bar: relative to maxChakra, capped at 100% visually
-  const chakraPct = Math.min(100, pct(G.chakra, G.maxChakra));
-  document.getElementById('barChakra').style.width = chakraPct + '%';
-  console.log('dispChakra element value:', document.getElementById('dispChakra').textContent);
+  document.getElementById('barChakra').style.width = Math.min(100, pct(G.chakra, G.maxChakra)) + '%';
 
   // Pips
   renderPips('roundPips', 3, G.round);
@@ -469,19 +463,22 @@ function resetInputs() {
   document.getElementById('inputChakra').value = 0;
   document.getElementById('inputDmg').value = 0;
   document.getElementById('inputHeal').value = 0;
+  document.getElementById('inputRenforcementChakra').value = 0;
   document.getElementById('chakraWarn').style.display = 'none';
-  // Reset heal section
+  // Reset renfort section
   document.getElementById('healSection').classList.add('hidden');
-  document.getElementById('healToggle').textContent = '+ Utiliser une carte soin';
+  document.getElementById('healToggle').textContent = '+ Utiliser un renfort';
 }
 
 // ── Action logic ─────────────────────────────────────────
 function confirmAction() {
-  closeActionModal();
-
+  // Read values BEFORE closing the modal
   const chakraSpent = Math.max(0, parseInt(document.getElementById('inputChakra').value) || 0);
   const dmg         = Math.max(0, parseInt(document.getElementById('inputDmg').value) || 0);
   const heal        = Math.max(0, parseInt(document.getElementById('inputHeal').value) || 0);
+  const chakraHeal  = Math.max(0, parseInt(document.getElementById('inputRenforcementChakra').value) || 0);
+
+  closeActionModal();
 
   // Warn but don't block — the game says you can't play the technique
   // but we still apply it so the player tracks the outcome
@@ -490,15 +487,17 @@ function confirmAction() {
     warn.style.display = 'block';
   }
 
-  G.chakra = Math.max(0, G.chakra - chakraSpent);
-  G.hp     = Math.max(0, G.hp - dmg + heal);
-  if (heal > 0) G.hp = Math.min(G.maxHP, G.hp); // cap at max
+  G.chakra = Math.max(0, G.chakra - chakraSpent + chakraHeal);
+
+  const hpAfterDmg = Math.max(0, G.hp - dmg);
+  G.hp = hpAfterDmg + heal;
 
   // Build log line
   const parts = [];
   if (chakraSpent > 0) parts.push(`<span class="c-chakra">−${chakraSpent} PC</span>`);
   if (dmg > 0)         parts.push(`<span class="c-hp">−${dmg} PV</span>`);
-  if (heal > 0)        parts.push(`<span class="c-heal">+${heal} PV (soin)</span>`);
+  if (heal > 0)        parts.push(`<span class="c-heal">+${heal} PV (renfort)</span>`);
+  if (chakraHeal > 0)  parts.push(`<span class="c-chakra">+${chakraHeal} PC (renfort)</span>`);
   const effect = parts.length ? parts.join(', ') : 'aucun effet';
   G.log.push(`<b>Round ${G.round} - Action ${G.action}</b> ${effect} → ❤️${G.hp} 💙${G.chakra}`);
 
@@ -582,7 +581,7 @@ function toggleHeal() {
   const s = document.getElementById('healSection');
   const t = document.getElementById('healToggle');
   const hidden = s.classList.toggle('hidden');
-  t.textContent = hidden ? '+ Utiliser une carte soin' : '− Annuler le soin';
+  t.textContent = hidden ? '+ Utiliser un renfort' : '− Annuler le renfort';
 }
 
 function openEndCombatModal() {
@@ -729,16 +728,24 @@ window.addEventListener('load', initFromURL);
 
       <div id="healSection" class="hidden">
         <div class="stepper-wrap heal-wrap">
-          <label><span class="icon">💚</span> PV récupérés (carte soin)</label>
+          <label><span class="icon">💚</span> PV récupérés (renfort)</label>
           <div class="stepper">
             <button onclick="step('inputHeal', -1)">−</button>
             <input type="number" id="inputHeal" value="0" min="0" inputmode="numeric">
             <button onclick="step('inputHeal', 1)">+</button>
           </div>
         </div>
+        <div class="stepper-wrap chakra-wrap">
+          <label><span class="icon">💙</span> Chakra récupéré (renfort)</label>
+          <div class="stepper">
+            <button onclick="step('inputRenforcementChakra', -1)">−</button>
+            <input type="number" id="inputRenforcementChakra" value="0" min="0" inputmode="numeric">
+            <button onclick="step('inputRenforcementChakra', 1)">+</button>
+          </div>
+        </div>
       </div>
 
-      <div class="heal-toggle" id="healToggle" onclick="toggleHeal()">+ Utiliser une carte soin</div>
+      <div class="heal-toggle" id="healToggle" onclick="toggleHeal()">+ Utiliser un renfort</div>
     </div>
 
     <div class="modal-footer">
