@@ -106,6 +106,15 @@ body { padding: 16px 14px 32px; }
 }
 .selected-summary-name { font-weight: 700; font-size: 0.95rem; }
 .selected-summary-stats { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.sort-option {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.sort-option:last-child { border-bottom: none; }
+.sort-option:active { background: var(--card2); }
+.sort-option.active { color: var(--orange); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -130,7 +139,10 @@ body { padding: 16px 14px 32px; }
   </div>
 
   <div style="margin-bottom:12px;">
-    <div class="card-label" id="playerCardLabel">Ninja</div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="card-label" id="playerCardLabel" style="margin-bottom:0;">Ninja</div>
+      <button class="btn btn-ghost" onclick="openSortMenu('characterGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+    </div>
     <button class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
   </div>
 
@@ -176,7 +188,10 @@ body { padding: 16px 14px 32px; }
   </div>
 
   <div style="margin-bottom:12px;">
-    <div class="card-label" id="opponentCardLabel">Adversaire</div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="card-label" id="opponentCardLabel" style="margin-bottom:0;">Adversaire</div>
+      <button class="btn btn-ghost" onclick="openSortMenu('opponentGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+    </div>
     <button class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
   </div>
 
@@ -219,6 +234,15 @@ body { padding: 16px 14px 32px; }
 
   <button class="btn btn-orange" onclick="startCombat()">⚔️ Commencer le combat →</button>
   <button class="btn btn-ghost" onclick="goBackToStep2()" style="margin-top:8px;">← Retour</button>
+</div>
+
+<!-- ══════════════ SORT MENU ══════════════ -->
+<div id="sortMenu" style="display:none; position:fixed; z-index:1001; background:var(--card); border:1px solid var(--border); border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.4); min-width:160px; overflow:hidden;">
+  <div class="sort-option" onclick="applySort('name')">Nom</div>
+  <div class="sort-option" onclick="applySort('hp')">Points de Vie</div>
+  <div class="sort-option" onclick="applySort('mp')">Chakra</div>
+  <div class="sort-option" onclick="applySort('xp')">XP</div>
+  <div class="sort-option" onclick="applySort('availability')">Disponibilité</div>
 </div>
 
 <!-- ══════════════ UNLOCK MODAL ══════════════ -->
@@ -264,12 +288,7 @@ function unavailableReason(c, currentTurn) {
 function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock) {
   const grid = document.getElementById(gridId);
   grid.innerHTML = '';
-  const sorted = [...characters].sort((a, b) => {
-    const aAvail = (forceUnlock || isAvailable(a, currentTurn)) ? 0 : 1;
-    const bAvail = (forceUnlock || isAvailable(b, currentTurn)) ? 0 : 1;
-    if (aAvail !== bAvail) return aAvail - bAvail;
-    return a.name.localeCompare(b.name);
-  });
+  const sorted = sortCharacters([...characters], currentTurn, forceUnlock);
   sorted.forEach(c => {
     const available = forceUnlock || isAvailable(c, currentTurn);
     const card = document.createElement('div');
@@ -296,6 +315,21 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
     }
 
     grid.appendChild(card);
+  });
+}
+
+function sortCharacters(characters, currentTurn, forceUnlock) {
+  return characters.sort((a, b) => {
+    const aAvail = (forceUnlock || isAvailable(a, currentTurn)) ? 0 : 1;
+    const bAvail = (forceUnlock || isAvailable(b, currentTurn)) ? 0 : 1;
+    if (aAvail !== bAvail) return aAvail - bAvail;
+    switch (sortKey) {
+      case 'name': return a.name.localeCompare(b.name);
+      case 'hp':   return (b.hp || 0) - (a.hp || 0);
+      case 'mp':   return ((b.mp || 0) + (b.extra_mp || 0)) - ((a.mp || 0) + (a.extra_mp || 0));
+      case 'xp':   return (b.xp || 0) - (a.xp || 0);
+      default:     return a.name.localeCompare(b.name); // availability = alpha
+    }
   });
 }
 
@@ -405,6 +439,71 @@ function goToStep2() {
   document.getElementById('step1Screen').classList.add('hidden');
   document.getElementById('step2Screen').classList.remove('hidden');
   window.scrollTo(0, 0);
+}
+
+let sortKey = 'availability';
+let sortGridId = null;
+let sortGridOnSelect = null;
+
+function openSortMenu(gridId, btn) {
+  sortGridId = gridId;
+  const menu = document.getElementById('sortMenu');
+  // Mark active option
+  menu.querySelectorAll('.sort-option').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('onclick').includes(`'${sortKey}'`));
+  });
+  // Position below button
+  const rect = btn.getBoundingClientRect();
+  menu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  menu.style.left = (rect.left + window.scrollX) + 'px';
+  menu.style.display = 'block';
+  // Close on outside click
+  setTimeout(() => document.addEventListener('click', closeSortMenu, { once: true }), 0);
+}
+
+function closeSortMenu() {
+  document.getElementById('sortMenu').style.display = 'none';
+}
+
+function applySort(key) {
+  sortKey = key;
+  closeSortMenu();
+  if (!sortGridId) return;
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+  const myTeam = gameData.team.toLowerCase();
+  const opponentTeam = myTeam === 'alliance' ? 'akatsuki' : 'alliance';
+
+  if (sortGridId === 'characterGrid') {
+    const prevSelected = selectedCharacter ? selectedCharacter.name : null;
+    selectedCharacter = null;
+    const nextBtn = document.getElementById('nextBtn');
+    nextBtn.disabled = true; nextBtn.style.opacity = '0.4';
+    const myRoster = roster.filter(c => c.team.toLowerCase() === myTeam);
+    buildRosterGrid('characterGrid', myRoster, currentTurn, onCharacterSelect, unlockPlayer);
+    // Re-select previously selected card if any
+    if (prevSelected) {
+      const card = document.querySelector(`#characterGrid [data-name="${CSS.escape(prevSelected)}"]`);
+      if (card && !card.classList.contains('unavailable')) {
+        const c = roster.find(r => r.name === prevSelected);
+        if (c) { selectedCharacter = c; card.classList.add('selected'); nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
+      }
+    }
+  } else {
+    const prevSelected = selectedOpponent ? selectedOpponent.name : null;
+    selectedOpponent = null;
+    const startBtn = document.getElementById('startBtn');
+    startBtn.disabled = true; startBtn.style.opacity = '0.4';
+    const opponentRoster = roster.filter(c => c.team.toLowerCase() === opponentTeam);
+    buildRosterGrid('opponentGrid', opponentRoster, currentTurn, onOpponentSelect, unlockOpponent);
+    if (prevSelected) {
+      const card = document.querySelector(`#opponentGrid [data-name="${CSS.escape(prevSelected)}"]`);
+      if (card && !card.classList.contains('unavailable')) {
+        const c = roster.find(r => r.name === prevSelected);
+        if (c) { selectedOpponent = c; card.classList.add('selected'); startBtn.disabled = false; startBtn.style.opacity = '1'; }
+      }
+    }
+  }
 }
 
 function openUnlockModal(context) {
