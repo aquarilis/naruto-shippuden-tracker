@@ -4,70 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Naruto — Choix du Camp</title>
+<link rel="stylesheet" href="style.css">
 <style>
-:root {
-  --hp: #e53935;
-  --hp-dark: #8b0000;
-  --chakra: #1e88e5;
-  --chakra-dark: #0a3d7a;
-  --heal: #43a047;
-  --bg: #0e0e1a;
-  --card: #16182e;
-  --card2: #1e2040;
-  --border: #2a2d50;
-  --text: #e8e8f0;
-  --muted: #7a7da0;
-  --orange: #ff6d00;
-  --orange2: #ff9100;
-}
+body { padding: 16px 14px 32px; }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-
-body {
-  font-family: -apple-system, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100dvh;
-  padding: 16px 14px 32px;
-}
-
-/* ── Header ── */
-.header {
-  display: grid;
-  grid-template-columns: 100px 1fr 100px;
-  align-items: center;
-  margin-bottom: 20px;
-  min-height: 100px;
-}
-
-.header-logo-left {
-  height: 100px;
-  width: auto;
-}
-
-.header-logo-right {
-  height: 100px;
-  width: auto;
-  justify-self: end;
-}
-
-.header-center {
-  text-align: center;
-}
-
-.header h1 {
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  background: linear-gradient(135deg, var(--orange), var(--orange2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-transform: uppercase;
-  margin: 0;
-}
-
-/* ── Cards ── */
+/* ── Camp cards ── */
 .cards-row {
   display: flex;
   gap: 12px;
@@ -75,32 +16,18 @@ body {
 
 .card {
   flex: 1;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 12px;
   cursor: pointer;
   transition: transform 0.08s, border-color 0.12s;
   text-align: center;
 }
 
-.card:active {
-  transform: scale(0.97);
-}
+.card:active { transform: scale(0.97); }
 
 .card img {
   width: auto;
   height: 120px;
   margin-bottom: 12px;
   object-fit: contain;
-}
-
-.card-label {
-  font-size: 0.7rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
 }
 
 .card-title {

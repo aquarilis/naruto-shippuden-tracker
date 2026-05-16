@@ -1,3 +1,4 @@
 *.xlsx
 *.afdesign
 *.afphoto
+.DS_Store

@@ -1,0 +1,190 @@
+/* ══════════════════════════════════════
+   Naruto Shippuden Tracker — Shared CSS
+   ══════════════════════════════════════ */
+
+/* ── Variables ── */
+:root {
+  --hp: #e53935;
+  --hp-dark: #8b0000;
+  --chakra: #1e88e5;
+  --chakra-dark: #0a3d7a;
+  --heal: #43a047;
+  --bg: #0e0e1a;
+  --card: #16182e;
+  --card2: #1e2040;
+  --border: #2a2d50;
+  --text: #e8e8f0;
+  --muted: #7a7da0;
+  --orange: #ff6d00;
+  --orange2: #ff9100;
+}
+
+/* ── Reset ── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ── Base ── */
+body {
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+}
+
+/* ── Header 3 zones ── */
+.header {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 100px;
+}
+
+.header-logo-left {
+  height: 100px;
+  width: auto;
+}
+
+.header-logo-right {
+  height: 100px;
+  width: auto;
+  justify-self: end;
+}
+
+.header-center {
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.header .sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+}
+
+.card-label {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ── Form inputs ── */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 11px 14px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+input[type="number"] {
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+input:focus { border-color: var(--orange); }
+
+select {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 11px 14px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+select:focus { border-color: var(--orange); }
+
+/* ── Buttons ── */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.12s, transform 0.08s;
+  text-align: center;
+}
+
+.btn:active { opacity: 0.75; transform: scale(0.97); }
+
+.btn-orange {
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  color: #fff;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ── Error message ── */
+.error-msg {
+  background: var(--hp-dark);
+  border: 1px solid var(--hp);
+  border-radius: 10px;
+  color: #ffcccc;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  display: none;
+}
+
+/* ── Utility ── */
+.hidden { display: none !important; }
