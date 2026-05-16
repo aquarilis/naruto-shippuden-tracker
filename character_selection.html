@@ -198,27 +198,24 @@ select:focus { border-color: var(--orange); }
   <div id="errorMsg" class="error-msg"></div>
 
   <div class="card">
-    <div class="card-label">Personnage</div>
+    <div class="card-label" id="playerCardLabel">Ninja</div>
     <div class="field">
-      <label>Choisir un ninja</label>
       <select id="characterSelect" onchange="onCharacterChange()">
         <option value="">— Sélectionner —</option>
       </select>
     </div>
-  </div>
-
-  <div id="statsPreview" class="card" style="display:none;">
-    <div class="card-label">Statistiques</div>
-    <div class="stats-grid">
-      <div class="stat-preview">
-        <span class="stat-icon">❤️</span>
-        <span class="stat-preview-label">PV</span>
-        <span class="stat-preview-value" id="previewHP">—</span>
-      </div>
-      <div class="stat-preview">
-        <span class="stat-icon">💙</span>
-        <span class="stat-preview-label">Chakra</span>
-        <span class="stat-preview-value" id="previewChakra">—</span>
+    <div id="statsPreview" style="display:none; margin-top:12px;">
+      <div class="stats-grid">
+        <div class="stat-preview">
+          <span class="stat-icon">❤️</span>
+          <span class="stat-preview-label">PV</span>
+          <span class="stat-preview-value" id="previewHP">—</span>
+        </div>
+        <div class="stat-preview">
+          <span class="stat-icon">💙</span>
+          <span class="stat-preview-label">Chakra</span>
+          <span class="stat-preview-value" id="previewChakra">—</span>
+        </div>
       </div>
     </div>
   </div>
@@ -228,27 +225,24 @@ select:focus { border-color: var(--orange); }
   </div>
 
   <div class="card">
-    <div class="card-label">Adversaire</div>
+    <div class="card-label" id="opponentCardLabel">Adversaire</div>
     <div class="field">
-      <label>Choisir l'adversaire</label>
       <select id="opponentSelect" onchange="onOpponentChange()">
         <option value="">— Sélectionner —</option>
       </select>
     </div>
-  </div>
-
-  <div id="opponentPreview" class="card" style="display:none;">
-    <div class="card-label">Statistiques adversaire</div>
-    <div class="stats-grid">
-      <div class="stat-preview">
-        <span class="stat-icon">❤️</span>
-        <span class="stat-preview-label">PV</span>
-        <span class="stat-preview-value" id="opponentPreviewHP">—</span>
-      </div>
-      <div class="stat-preview">
-        <span class="stat-icon">💙</span>
-        <span class="stat-preview-label">Chakra</span>
-        <span class="stat-preview-value" id="opponentPreviewChakra">—</span>
+    <div id="opponentPreview" style="display:none; margin-top:12px;">
+      <div class="stats-grid">
+        <div class="stat-preview">
+          <span class="stat-icon">❤️</span>
+          <span class="stat-preview-label">PV</span>
+          <span class="stat-preview-value" id="opponentPreviewHP">—</span>
+        </div>
+        <div class="stat-preview">
+          <span class="stat-icon">💙</span>
+          <span class="stat-preview-label">Chakra</span>
+          <span class="stat-preview-value" id="opponentPreviewChakra">—</span>
+        </div>
       </div>
     </div>
   </div>
@@ -309,6 +303,12 @@ function initializePage() {
 
   const myTeam = gameData.team.toLowerCase();
   const opponentTeam = myTeam === 'alliance' ? 'akatsuki' : 'alliance';
+
+  const myTeamLabel = myTeam === 'alliance' ? "Ninja de l'Alliance Shinobi" : "Ninja de l'Akatsuki";
+  const opponentTeamLabel = opponentTeam === 'alliance' ? "Ninja de l'Alliance Shinobi" : "Ninja de l'Akatsuki";
+
+  document.getElementById('playerCardLabel').textContent = myTeamLabel;
+  document.getElementById('opponentCardLabel').textContent = opponentTeamLabel;
 
   const myRoster = roster.filter(c => c.team.toLowerCase() === myTeam);
   const opponentRoster = roster.filter(c => c.team.toLowerCase() === opponentTeam);
@@ -376,6 +376,16 @@ function startCombat() {
   window.location.href = `combat.html?${params.toString()}`;
 }
 
+const ROSTER_FALLBACK = [
+  {"name":"Naruto","team":"alliance","hp":12,"mp":5,"extra_mp":1,"available_from_turn":1},
+  {"name":"Sasuke","team":"alliance","hp":10,"mp":3,"extra_mp":null,"available_from_turn":1},
+  {"name":"Naruto 2","team":"alliance","hp":9,"mp":2,"extra_mp":null,"available_from_turn":5},
+  {"name":"Kakashi","team":"alliance","hp":10,"mp":3,"extra_mp":null,"available_from_turn":1},
+  {"name":"Kisame","team":"akatsuki","hp":15,"mp":5,"extra_mp":2,"available_from_turn":1},
+  {"name":"Itachi","team":"akatsuki","hp":16,"mp":4,"extra_mp":null,"available_from_turn":1},
+  {"name":"Obito","team":"akatsuki","hp":12,"mp":2,"extra_mp":null,"available_from_turn":3}
+];
+
 window.addEventListener('load', () => {
   fetch('roster.json')
     .then(r => {
@@ -387,8 +397,8 @@ window.addEventListener('load', () => {
       initializePage();
     })
     .catch(() => {
-      document.getElementById('errorMsg').textContent = 'Impossible de charger le roster.';
-      document.getElementById('errorMsg').style.display = 'block';
+      roster = ROSTER_FALLBACK;
+      initializePage();
     });
 });
 </script>
