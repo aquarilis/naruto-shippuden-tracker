@@ -242,9 +242,12 @@ function unavailableReason(c, currentTurn) {
 function buildRosterGrid(gridId, characters, currentTurn, onSelect) {
   const grid = document.getElementById(gridId);
   grid.innerHTML = '';
-  const sorted = [...characters].sort((a, b) =>
-    (isAvailable(a, currentTurn) ? 0 : 1) - (isAvailable(b, currentTurn) ? 0 : 1)
-  );
+  const sorted = [...characters].sort((a, b) => {
+    const aAvail = isAvailable(a, currentTurn) ? 0 : 1;
+    const bAvail = isAvailable(b, currentTurn) ? 0 : 1;
+    if (aAvail !== bAvail) return aAvail - bAvail;
+    return a.name.localeCompare(b.name);
+  });
   sorted.forEach(c => {
     const available = isAvailable(c, currentTurn);
     const card = document.createElement('div');
