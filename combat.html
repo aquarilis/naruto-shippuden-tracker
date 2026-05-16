@@ -480,7 +480,7 @@ input:focus { border-color: var(--orange); }
     <div class="log" id="log"><div class="log-entry" style="color:var(--muted); font-style:italic;">Le combat commence…</div></div>
   </div>
 
-  <button class="btn btn-ghost" onclick="resetGame()" style="margin-top:4px;">↺ Nouvelle partie</button>
+  <button class="btn btn-ghost" onclick="resetGame()" style="margin-top:4px;">↺ Nouveau combat</button>
 </div>
 
 <!-- ══════════════ END SCREEN ══════════════ -->
@@ -494,7 +494,7 @@ input:focus { border-color: var(--orange); }
     <div class="end-title" id="endTitle"></div>
     <div class="end-sub" id="endSub"></div>
     <div class="end-stats" id="endStats"></div>
-    <button class="btn btn-orange" onclick="resetGame()">↺ Nouvelle partie</button>
+    <button class="btn btn-orange" onclick="resetGame()">↺ Nouveau combat</button>
   </div>
 </div>
 
@@ -535,6 +535,7 @@ function startCombat() {
     log: []
   };
 
+  document.getElementById('log').innerHTML = '';
   hide('setupScreen');
   show('combatScreen');
   hide('endScreen');
