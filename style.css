@@ -162,6 +162,7 @@ select:focus { border-color: var(--orange); }
 }
 
 .btn:active { opacity: 0.75; transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-orange {
   background: linear-gradient(135deg, var(--orange), var(--orange2));
@@ -173,6 +174,12 @@ select:focus { border-color: var(--orange); }
   border: 1.5px solid var(--border);
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.btn-draw {
+  background: rgba(158, 158, 158, 0.2);
+  border: 1.5px solid var(--border);
+  color: var(--muted);
 }
 
 /* ── Error message ── */

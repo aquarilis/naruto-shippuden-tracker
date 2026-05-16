@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Naruto — Sélection du Personnage</title>
 <link rel="stylesheet" href="style.css">
+<script src="utils.js"></script>
 <style>
 body { padding: 16px 14px 32px; }
 
@@ -122,7 +123,7 @@ body { padding: 16px 14px 32px; }
 <!-- ══════════════ STEP 1 : NINJA DU CLAN ══════════════ -->
 <div id="step1Screen">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <a href="index.html" aria-label="Retour à l'accueil"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
       <h1>Sélection des combattants</h1>
       <div class="sub" id="step1Subtitle">Tour —</div>
@@ -141,9 +142,9 @@ body { padding: 16px 14px 32px; }
   <div style="margin-bottom:12px;">
     <div style="display:flex; align-items:center; gap:8px;">
       <div class="card-label" id="playerCardLabel" style="margin-bottom:0;">Ninja</div>
-      <button class="btn btn-ghost" onclick="openSortMenu('characterGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+      <button type="button" class="btn btn-ghost" onclick="openSortMenu('characterGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
     </div>
-    <button class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
+    <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
   </div>
 
   <div id="noCharMsg" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
@@ -152,14 +153,14 @@ body { padding: 16px 14px 32px; }
 
   <div class="roster-grid" id="characterGrid"></div>
 
-  <button class="btn btn-orange" id="nextBtn" onclick="goToStep2()" disabled style="opacity:0.4;">Suivant →</button>
-  <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
+  <button type="button" class="btn btn-orange" id="nextBtn" onclick="goToStep2()" disabled style="opacity:0.4;">Suivant →</button>
+  <button type="button" class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
 </div>
 
 <!-- ══════════════ STEP 2 : ADVERSAIRE ══════════════ -->
 <div id="step2Screen" class="hidden">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <a href="index.html" aria-label="Retour à l'accueil"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
       <h1>Sélection des combattants</h1>
       <div class="sub" id="step2Subtitle">Tour —</div>
@@ -190,9 +191,9 @@ body { padding: 16px 14px 32px; }
   <div style="margin-bottom:12px;">
     <div style="display:flex; align-items:center; gap:8px;">
       <div class="card-label" id="opponentCardLabel" style="margin-bottom:0;">Adversaire</div>
-      <button class="btn btn-ghost" onclick="openSortMenu('opponentGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+      <button type="button" class="btn btn-ghost" onclick="openSortMenu('opponentGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
     </div>
-    <button class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
+    <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
   </div>
 
   <div id="noOpponentMsg" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
@@ -201,14 +202,14 @@ body { padding: 16px 14px 32px; }
 
   <div class="roster-grid" id="opponentGrid"></div>
 
-  <button class="btn btn-orange" id="startBtn" onclick="goToConfirm()" disabled style="opacity:0.4;">Suivant →</button>
-  <button class="btn btn-ghost" onclick="goBackToStep1()" style="margin-top:8px;">← Retour</button>
+  <button type="button" class="btn btn-orange" id="startBtn" onclick="goToConfirm()" disabled style="opacity:0.4;">Suivant →</button>
+  <button type="button" class="btn btn-ghost" onclick="goBackToStep1()" style="margin-top:8px;">← Retour</button>
 </div>
 
 <!-- ══════════════ STEP 3 : CONFIRMATION ══════════════ -->
 <div id="step3Screen" class="hidden">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <a href="index.html" aria-label="Retour à l'accueil"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
       <h1>Confirmation</h1>
       <div class="sub" id="step3Subtitle">Tour —</div>
@@ -232,8 +233,8 @@ body { padding: 16px 14px 32px; }
     </div>
   </div>
 
-  <button class="btn btn-orange" onclick="startCombat()">⚔️ Commencer le combat →</button>
-  <button class="btn btn-ghost" onclick="goBackToStep2()" style="margin-top:8px;">← Retour</button>
+  <button type="button" class="btn btn-orange" onclick="startCombat()">⚔️ Commencer le combat →</button>
+  <button type="button" class="btn btn-ghost" onclick="goBackToStep2()" style="margin-top:8px;">← Retour</button>
 </div>
 
 <!-- ══════════════ SORT MENU ══════════════ -->
@@ -246,14 +247,14 @@ body { padding: 16px 14px 32px; }
 </div>
 
 <!-- ══════════════ UNLOCK MODAL ══════════════ -->
-<div id="unlockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+<div id="unlockModal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
   <div class="card" style="max-width:340px; width:100%; padding:24px; text-align:center;">
     <div style="font-size:1.5rem; margin-bottom:12px;">🔓</div>
     <div style="font-weight:700; font-size:1rem; margin-bottom:8px;">Autoriser sélection des personnages indisponibles ?</div>
     <div style="font-size:0.82rem; color:var(--muted); margin-bottom:20px;">Les restrictions de disponibilité seront ignorées pour cette sélection.</div>
     <div style="display:flex; gap:10px;">
-      <button class="btn btn-ghost" onclick="closeUnlockModal()" style="flex:1; margin-bottom:0;">Annuler</button>
-      <button class="btn btn-orange" onclick="confirmUnlock()" style="flex:1; margin-bottom:0;">Oui</button>
+      <button type="button" class="btn btn-ghost" onclick="closeUnlockModal()" style="flex:1; margin-bottom:0;">Annuler</button>
+      <button type="button" class="btn btn-orange" onclick="confirmUnlock()" style="flex:1; margin-bottom:0;">Oui</button>
     </div>
   </div>
 </div>
@@ -265,14 +266,6 @@ let selectedOpponent = null;
 let unlockPlayer = false;
 let unlockOpponent = false;
 let unlockContext = null; // 'player' or 'opponent'
-
-function getGameData() {
-  return JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
-}
-
-function getTeamLogoPath(team) {
-  return team === 'alliance' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
-}
 
 function isAvailable(c, currentTurn) {
   if (c.available_from_turn > currentTurn) return false;
@@ -344,14 +337,14 @@ function onCharacterSelect(c, card) {
   selectedCharacter = selectCard(c, card, 'characterGrid');
   const nextBtn = document.getElementById('nextBtn');
   nextBtn.disabled = false;
-  nextBtn.style.opacity = '1';
+  nextBtn.style.opacity = '';
 }
 
 function onOpponentSelect(c, card) {
   selectedOpponent = selectCard(c, card, 'opponentGrid');
   const startBtn = document.getElementById('startBtn');
   startBtn.disabled = false;
-  startBtn.style.opacity = '1';
+  startBtn.style.opacity = '';
 }
 
 function goToConfirm() {
@@ -370,7 +363,7 @@ function goBackToStep2() {
   unlockOpponent = false;
   selectedOpponent = null;
   const startBtn = document.getElementById('startBtn');
-  startBtn.disabled = true; startBtn.style.opacity = '0.4';
+  startBtn.disabled = true; startBtn.style.opacity = '';
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
   const myTeam = gameData.team.toLowerCase();
@@ -479,7 +472,7 @@ function applySort(key) {
     const prevSelected = selectedCharacter ? selectedCharacter.name : null;
     selectedCharacter = null;
     const nextBtn = document.getElementById('nextBtn');
-    nextBtn.disabled = true; nextBtn.style.opacity = '0.4';
+    nextBtn.disabled = true; nextBtn.style.opacity = '';
     const myRoster = roster.filter(c => c.team.toLowerCase() === myTeam);
     buildRosterGrid('characterGrid', myRoster, currentTurn, onCharacterSelect, unlockPlayer);
     // Re-select previously selected card if any
@@ -487,21 +480,21 @@ function applySort(key) {
       const card = document.querySelector(`#characterGrid [data-name="${CSS.escape(prevSelected)}"]`);
       if (card && !card.classList.contains('unavailable')) {
         const c = roster.find(r => r.name === prevSelected);
-        if (c) { selectedCharacter = c; card.classList.add('selected'); nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
+        if (c) { selectedCharacter = c; card.classList.add('selected'); nextBtn.disabled = false; nextBtn.style.opacity = ''; }
       }
     }
   } else {
     const prevSelected = selectedOpponent ? selectedOpponent.name : null;
     selectedOpponent = null;
     const startBtn = document.getElementById('startBtn');
-    startBtn.disabled = true; startBtn.style.opacity = '0.4';
+    startBtn.disabled = true; startBtn.style.opacity = '';
     const opponentRoster = roster.filter(c => c.team.toLowerCase() === opponentTeam);
     buildRosterGrid('opponentGrid', opponentRoster, currentTurn, onOpponentSelect, unlockOpponent);
     if (prevSelected) {
       const card = document.querySelector(`#opponentGrid [data-name="${CSS.escape(prevSelected)}"]`);
       if (card && !card.classList.contains('unavailable')) {
         const c = roster.find(r => r.name === prevSelected);
-        if (c) { selectedOpponent = c; card.classList.add('selected'); startBtn.disabled = false; startBtn.style.opacity = '1'; }
+        if (c) { selectedOpponent = c; card.classList.add('selected'); startBtn.disabled = false; startBtn.style.opacity = ''; }
       }
     }
   }
@@ -509,18 +502,18 @@ function applySort(key) {
 
 function openUnlockModal(context) {
   unlockContext = context;
-  document.getElementById('unlockModal').style.display = 'flex';
+  document.getElementById('unlockModal').classList.remove('hidden');
 }
 
 function closeUnlockModal() {
-  document.getElementById('unlockModal').style.display = 'none';
+  document.getElementById('unlockModal').classList.add('hidden');
 }
 
 function updateUnlockButtons() {
   const btn1 = document.querySelector('#step1Screen .unlock-btn');
   const btn2 = document.querySelector('#step2Screen .unlock-btn');
-  if (btn1) { btn1.disabled = unlockPlayer; btn1.style.opacity = unlockPlayer ? '0.3' : '0.6'; }
-  if (btn2) { btn2.disabled = unlockOpponent; btn2.style.opacity = unlockOpponent ? '0.3' : '0.6'; }
+  if (btn1) { btn1.disabled = unlockPlayer; }
+  if (btn2) { btn2.disabled = unlockOpponent; }
 }
 
 function confirmUnlock() {
@@ -530,13 +523,13 @@ function confirmUnlock() {
     unlockPlayer = true;
     selectedCharacter = null;
     const nextBtn = document.getElementById('nextBtn');
-    nextBtn.disabled = true; nextBtn.style.opacity = '0.4';
+    nextBtn.disabled = true; nextBtn.style.opacity = '';
     unlockGridInPlace('characterGrid', onCharacterSelect);
   } else {
     unlockOpponent = true;
     selectedOpponent = null;
     const startBtn = document.getElementById('startBtn');
-    startBtn.disabled = true; startBtn.style.opacity = '0.4';
+    startBtn.disabled = true; startBtn.style.opacity = '';
     unlockGridInPlace('opponentGrid', onOpponentSelect);
   }
   updateUnlockButtons();
@@ -561,7 +554,7 @@ function goBackToStep1() {
   unlockPlayer = false;
   selectedCharacter = null;
   const nextBtn = document.getElementById('nextBtn');
-  nextBtn.disabled = true; nextBtn.style.opacity = '0.4';
+  nextBtn.disabled = true; nextBtn.style.opacity = '';
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
   const myTeam = gameData.team.toLowerCase();
@@ -596,7 +589,7 @@ const ROSTER_FALLBACK = [
   {"name":"Minato Namikaze","team":"alliance","hp":75,"mp":24,"extra_mp":2,"xp":5,"available_from_turn":2,"available_until_turn":2,"roster_image":"minato_namikaze.png"},
   {"name":"Mei Terumi","team":"akatsuki","hp":57,"mp":17,"extra_mp":null,"xp":4,"available_from_turn":1,"available_until_turn":null,"roster_image":"mei_terumi.png"},
   {"name":"Tsunade","team":"akatsuki","hp":58,"mp":17,"extra_mp":null,"xp":4,"available_from_turn":1,"available_until_turn":3,"roster_image":"tsunade.png"},
-  {"name":"Naruo Uzumaki","team":"akatsuki","hp":67,"mp":22,"extra_mp":5,"xp":4,"available_from_turn":2,"available_until_turn":4,"roster_image":"naruto_uzumaki_deck_3.png"}
+  {"name":"Naruto Uzumaki","team":"akatsuki","hp":67,"mp":22,"extra_mp":5,"xp":4,"available_from_turn":2,"available_until_turn":4,"roster_image":"naruto_uzumaki_deck_3.png"}
 ];
 
 window.addEventListener('load', () => {

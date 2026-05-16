@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Naruto — Suivi de Combat</title>
 <link rel="stylesheet" href="style.css">
+<script src="utils.js"></script>
 <style>
 body { padding: 16px 14px 32px; }
 
@@ -274,7 +275,7 @@ body { padding: 16px 14px 32px; }
 <!-- ══════════════ COMBAT ══════════════ -->
 <div id="combatScreen" class="hidden">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <a href="index.html" aria-label="Retour à l'accueil"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
       <h1 id="combatTitle">Combat</h1>
     </div>
@@ -327,8 +328,8 @@ body { padding: 16px 14px 32px; }
   <!-- Turn inputs -->
   <!-- Action Buttons -->
   <div style="display:flex; gap:10px; margin-bottom:14px;">
-    <button class="btn btn-orange" onclick="openActionModal()" style="flex:1;">Saisir action</button>
-    <button class="btn btn-end" onclick="openEndCombatModal()" style="flex:1;">Terminer combat</button>
+    <button type="button" class="btn btn-orange" onclick="openActionModal()" style="flex:1;">Saisir action</button>
+    <button type="button" class="btn btn-end" onclick="openEndCombatModal()" style="flex:1;">Terminer combat</button>
   </div>
 
   <!-- Log -->
@@ -337,14 +338,14 @@ body { padding: 16px 14px 32px; }
     <div class="log" id="log"><div class="log-entry" style="color:var(--muted); font-style:italic;">Le combat commence…</div></div>
   </div>
 
-  <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:4px;">✕ Annuler combat</button>
+  <button type="button" class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:4px;">✕ Annuler combat</button>
 </div>
 
 
 <!-- ══════════════ RECORD SCREEN ══════════════ -->
 <div id="recordScreen" class="hidden">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <a href="index.html" aria-label="Retour à l'accueil"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
       <h1>Tour Terminé</h1>
       <div class="sub">Enregistrement du résultat</div>
@@ -355,8 +356,8 @@ body { padding: 16px 14px 32px; }
   <div class="card" style="text-align:center; padding: 28px 20px; margin-top: 20px;">
     <div class="card-label">Que s'est-il passé ?</div>
     <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
-      <button class="btn btn-orange" onclick="openXpModal()">✓ Victoire</button>
-      <button class="btn" style="background: rgba(158, 158, 158, 0.2); border: 1.5px solid var(--border); color: var(--muted);" onclick="recordResult('draw')">⟷ Match Nul</button>
+      <button type="button" class="btn btn-orange" onclick="openXpModal()">✓ Victoire</button>
+      <button type="button" class="btn btn-draw" onclick="recordResult('draw')">⟷ Match Nul</button>
     </div>
   </div>
 </div>
@@ -364,7 +365,7 @@ body { padding: 16px 14px 32px; }
 <!-- ══════════════ END SCREEN ══════════════ -->
 <div id="endScreen" class="hidden">
   <div class="header">
-    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <a href="index.html" aria-label="Retour à l'accueil"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
       <h1>Naruto</h1>
       <div class="sub">Fin du Combat</div>
@@ -376,7 +377,7 @@ body { padding: 16px 14px 32px; }
     <div class="end-title" id="endTitle"></div>
     <div class="end-sub" id="endSub"></div>
     <div class="end-stats" id="endStats"></div>
-    <button class="btn btn-orange" onclick="window.location.href='game_tracker.html'">↩ Retour au suivi</button>
+    <button type="button" class="btn btn-orange" onclick="window.location.href='game_tracker.html'">↩ Retour au suivi</button>
   </div>
 </div>
 
@@ -386,7 +387,7 @@ body { padding: 16px 14px 32px; }
     <div class="modal-icon">🌀</div>
     <div class="modal-title" id="overlayTitle">Nouveau Round !</div>
     <div class="modal-body" id="overlayBody"></div>
-    <button class="btn btn-orange" onclick="closeOverlay()">Continuer →</button>
+    <button type="button" class="btn btn-orange" onclick="closeOverlay()">Continuer →</button>
   </div>
 </div>
 
@@ -395,8 +396,6 @@ body { padding: 16px 14px 32px; }
 let G = {};
 
 function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, playerImage, opponentImage) {
-  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent, opponentXp, playerImage, opponentImage });
-
   G = {
     name,
     maxHP,
@@ -412,8 +411,6 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, pla
     log: []
   };
 
-  console.log('G initialized:', G);
-
   document.getElementById('log').innerHTML = '';
   show('combatScreen');
   hide('endScreen');
@@ -421,9 +418,7 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, pla
   hide('recordScreen');
   hide('actionModal');
 
-  console.log('About to call renderCombat');
   renderCombat();
-  console.log('renderCombat completed');
 }
 
 // ── Render ─────────────────────────────────────────────
@@ -727,8 +722,8 @@ window.addEventListener('load', initFromURL);
       <div style="font-size: 0.85rem; color: var(--muted);">Le combat sera enregistré comme une victoire.</div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeEndCombatModal()">Annuler</button>
-      <button class="btn btn-orange" onclick="confirmEndCombat()">✓ Confirmer la victoire</button>
+      <button type="button" class="btn btn-ghost" onclick="closeEndCombatModal()">Annuler</button>
+      <button type="button" class="btn btn-orange" onclick="confirmEndCombat()">✓ Confirmer la victoire</button>
     </div>
   </div>
 </div>
@@ -744,7 +739,7 @@ window.addEventListener('load', initFromURL);
       <div style="font-size: 0.85rem; color: var(--muted);">Le combat sera enregistré comme une défaite.</div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-orange" onclick="recordResult('loss')">Retour au suivi de partie</button>
+      <button type="button" class="btn btn-orange" onclick="recordResult('loss')">Retour au suivi de partie</button>
     </div>
   </div>
 </div>
@@ -799,8 +794,8 @@ window.addEventListener('load', initFromURL);
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeActionModal()">Annuler</button>
-      <button class="btn btn-orange" onclick="confirmAction()">Valider l'action →</button>
+      <button type="button" class="btn btn-ghost" onclick="closeActionModal()">Annuler</button>
+      <button type="button" class="btn btn-orange" onclick="confirmAction()">Valider l'action →</button>
     </div>
   </div>
 </div>
@@ -836,9 +831,10 @@ window.addEventListener('load', initFromURL);
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeXpModal(); recordResult('win', null);">Ignorer</button>
-      <button class="btn btn-orange" onclick="confirmXpAndSave()">✓ Confirmer →</button>
+      <button type="button" class="btn btn-ghost" onclick="closeXpModal(); recordResult('win', null);">Ignorer</button>
+      <button type="button" class="btn btn-orange" onclick="confirmXpAndSave()">✓ Confirmer →</button>
     </div>
   </div>
 </div>
+</body>
 </html>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Naruto — Suivi de Partie</title>
 <link rel="stylesheet" href="style.css">
+<script src="utils.js"></script>
 <style>
 body { padding: 16px 14px 32px; }
 
@@ -103,17 +104,8 @@ body { padding: 16px 14px 32px; }
   background: rgba(220, 38, 38, 0.55);
 }
 
-.history-char-img-wrap.loser::after {
-  content: '✕';
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 900;
-  color: #fff;
-  background: rgba(220, 38, 38, 0.55);
+.history-char-img-wrap.loser img {
+  filter: brightness(0.5);
 }
 
 .history-vs { color: var(--muted); font-size: 0.75rem; font-weight: 700; }
@@ -204,16 +196,16 @@ body { padding: 16px 14px 32px; }
 </head>
 <body>
 
-<div id="noDataScreen" style="display:none; text-align:center; padding-top: 60px;">
+<div id="noDataScreen" class="hidden" style="text-align:center; padding-top: 60px;">
   <div style="font-size: 2.5rem; margin-bottom: 16px;">⚠️</div>
   <div style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Aucune donnée de partie détectée</div>
   <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 32px;">Démarre une nouvelle partie depuis la page d'accueil.</div>
-  <button class="btn btn-orange" onclick="window.location.href='index.html'">Retourner à l'accueil</button>
+  <button type="button" class="btn btn-orange" onclick="window.location.href='index.html'">Retourner à l'accueil</button>
 </div>
 
 <div id="gameScreen">
 <div class="header">
-  <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+  <a href="index.html" aria-label="Retour à l'accueil"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
   <div class="header-center">
     <h1>Suivi de Partie</h1>
     <div id="teamName" style="font-size:0.8rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:4px;"></div>
@@ -239,10 +231,10 @@ body { padding: 16px 14px 32px; }
   </div>
 </div>
 
-<button class="btn btn-orange" onclick="startNewTurn()">Commencer un nouveau tour</button>
+<button type="button" class="btn btn-orange" onclick="startNewTurn()">Commencer un nouveau tour</button>
 <div style="display:flex; gap:10px;">
-  <button class="btn btn-ghost" id="btnUndoTurn" onclick="openUndoModal()" style="flex:1;">↩ Annuler le dernier tour</button>
-  <button class="btn btn-ghost" onclick="window.location.href='index.html'" style="flex:1;">Quitter la partie</button>
+  <button type="button" class="btn btn-ghost" id="btnUndoTurn" onclick="openUndoModal()" style="flex:1;">↩ Annuler le dernier tour</button>
+  <button type="button" class="btn btn-ghost" onclick="window.location.href='index.html'" style="flex:1;">Quitter la partie</button>
 </div>
 </div>
 
@@ -253,8 +245,8 @@ body { padding: 16px 14px 32px; }
     <div class="log-modal-title" style="margin-bottom:6px;">Annuler le dernier tour ?</div>
     <div id="undoModalBody" class="log-modal-subtitle" style="margin-bottom:20px;"></div>
     <div style="display:flex; flex-direction:column; gap:10px;">
-      <button class="btn btn-orange" onclick="confirmUndoLastTurn()">Confirmer l'annulation</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('undoModal').classList.add('hidden')">Annuler</button>
+      <button type="button" class="btn btn-orange" onclick="confirmUndoLastTurn()">Confirmer l'annulation</button>
+      <button type="button" class="btn btn-ghost" onclick="document.getElementById('undoModal').classList.add('hidden')">Annuler</button>
     </div>
   </div>
 </div>
@@ -265,25 +257,17 @@ body { padding: 16px 14px 32px; }
     <div class="log-modal-title" id="logModalTitle"></div>
     <div class="log-modal-subtitle" id="logModalSubtitle"></div>
     <div class="log-modal-entries" id="logModalEntries"></div>
-    <button class="btn btn-ghost" onclick="document.getElementById('logModal').classList.add('hidden')">Fermer</button>
+    <button type="button" class="btn btn-ghost" onclick="document.getElementById('logModal').classList.add('hidden')">Fermer</button>
   </div>
 </div>
 
 <script>
-function getGameData() {
-  return JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
-}
-
-function getTeamLogoPath(team) {
-  return team === 'alliance' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
-}
-
 function renderGameTracker() {
   const gameData = getGameData();
 
   if (!gameData.team) {
-    document.getElementById('gameScreen').style.display = 'none';
-    document.getElementById('noDataScreen').style.display = 'block';
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('noDataScreen').classList.remove('hidden');
     return;
   }
 
@@ -306,15 +290,7 @@ function renderGameTracker() {
 
   // Toggle undo button
   const btnUndo = document.getElementById('btnUndoTurn');
-  if (gameData.turns.length === 0) {
-    btnUndo.disabled = true;
-    btnUndo.style.opacity = '0.35';
-    btnUndo.style.cursor = 'not-allowed';
-  } else {
-    btnUndo.disabled = false;
-    btnUndo.style.opacity = '';
-    btnUndo.style.cursor = '';
-  }
+  btnUndo.disabled = gameData.turns.length === 0;
 
   // Render history
   const historyList = document.getElementById('historyList');
