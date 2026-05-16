@@ -145,6 +145,12 @@ input:focus { border-color: var(--orange); }
 }
 .btn:active { opacity: 0.75; transform: scale(0.97); }
 .btn-orange { background: linear-gradient(135deg, var(--orange), var(--orange2)); color: #fff; }
+.btn-end {
+  background: rgba(67, 160, 71, 0.15);
+  border: 1.5px solid var(--heal);
+  color: var(--heal);
+  font-size: 0.9rem;
+}
 .btn-ghost {
   background: transparent;
   border: 1.5px solid var(--border);
@@ -478,8 +484,11 @@ input:focus { border-color: var(--orange); }
   </div>
 
   <!-- Turn inputs -->
-  <!-- Action Button -->
-  <button class="btn btn-orange" onclick="openActionModal()" style="margin-bottom: 14px;">Saisir action</button>
+  <!-- Action Buttons -->
+  <div style="display:flex; gap:10px; margin-bottom:14px;">
+    <button class="btn btn-orange" onclick="openActionModal()" style="flex:1;">Saisir action</button>
+    <button class="btn btn-end" onclick="openEndCombatModal()" style="flex:1;">Terminer combat</button>
+  </div>
 
   <!-- Log -->
   <div class="card">
@@ -739,6 +748,19 @@ function toggleHeal() {
   t.textContent = hidden ? '+ Utiliser une carte soin' : '− Annuler le soin';
 }
 
+function openEndCombatModal() {
+  document.getElementById('endCombatModal').classList.remove('hidden');
+}
+
+function closeEndCombatModal() {
+  document.getElementById('endCombatModal').classList.add('hidden');
+}
+
+function confirmEndCombat() {
+  closeEndCombatModal();
+  recordResult('win');
+}
+
 function openActionModal() {
   document.getElementById('actionModal').classList.remove('hidden');
 }
@@ -800,6 +822,24 @@ window.addEventListener('load', initFromURL);
 </script>
 
 <!-- ══════════════ ACTION INPUT MODAL ══════════════ -->
+<!-- ══════════════ END COMBAT CONFIRM MODAL ══════════════ -->
+<div id="endCombatModal" class="hidden action-modal-overlay">
+  <div class="action-modal">
+    <div class="modal-header">
+      <h2>Terminer le combat</h2>
+    </div>
+    <div class="modal-content" style="text-align:center; padding: 24px 16px;">
+      <div style="font-size: 2.5rem; margin-bottom: 12px;">🏆</div>
+      <div style="font-size: 1rem; color: var(--text); margin-bottom: 8px; font-weight: 700;">L'adversaire a été vaincu ?</div>
+      <div style="font-size: 0.85rem; color: var(--muted);">Le combat sera enregistré comme une victoire.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEndCombatModal()">Annuler</button>
+      <button class="btn btn-orange" onclick="confirmEndCombat()">✓ Confirmer la victoire</button>
+    </div>
+  </div>
+</div>
+
 <div id="actionModal" class="hidden action-modal-overlay">
   <div class="action-modal">
     <div class="modal-header">
