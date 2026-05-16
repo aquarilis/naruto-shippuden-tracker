@@ -182,7 +182,7 @@ body { padding: 16px 14px 32px; }
   </div>
   <div style="flex:1; border-left: 1px solid var(--border); padding-left:12px;">
     <div class="stat-label">Points d'Expérience</div>
-    <div class="stat-value" id="expTotal" style="color: var(--orange2);">0</div>
+    <div class="stat-value" id="xpTotal" style="color: var(--orange2);">0</div>
   </div>
 </div>
 
@@ -249,14 +249,14 @@ function renderGameTracker() {
   const nextTour = gameData.turns.length + 1;
   document.getElementById('tourCount').textContent = nextTour;
 
-  // Compute total EXP
-  const totalExp = gameData.turns.reduce((sum, t) => {
+  // Compute total XP
+  const totalXp = gameData.turns.reduce((sum, t) => {
     if (t.result === 'win' && t.exp) {
-      return sum + (t.exp.expCharacter || 0) + (t.exp.expMission || 0) + (t.exp.expSecondary || 0);
+      return sum + (t.exp.xpCharacter || 0) + (t.exp.xpMission || 0) + (t.exp.xpSecondary || 0);
     }
     return sum;
   }, 0);
-  document.getElementById('expTotal').textContent = totalExp;
+  document.getElementById('xpTotal').textContent = totalXp;
 
   // Toggle undo button
   const btnUndo = document.getElementById('btnUndoTurn');
@@ -279,16 +279,16 @@ function renderGameTracker() {
       const resultClass = `result-${turn.result}`;
       const resultText = turn.result === 'win' ? 'Victoire' : turn.result === 'loss' ? 'Défaite' : 'Match nul';
       const matchup = `${turn.playerCharacter.name}${turn.opponent ? ` vs. ${turn.opponent}` : ''}`;
-      const expBadge = turn.result === 'win' && turn.exp
+      const xpBadge = turn.result === 'win' && turn.exp
         ? (() => {
-            const total = (turn.exp.expCharacter || 0) + (turn.exp.expMission || 0) + (turn.exp.expSecondary || 0);
-            return total > 0 ? `<span style="font-size:0.72rem; color:var(--orange2); margin-left:6px;">+${total} EXP</span>` : '';
+            const total = (turn.exp.xpCharacter || 0) + (turn.exp.xpMission || 0) + (turn.exp.xpSecondary || 0);
+            return total > 0 ? `<span style="font-size:0.72rem; color:var(--orange2); margin-left:6px;">+${total} XP</span>` : '';
           })()
         : '';
       return `
         <div class="history-item" onclick="openLogModal(${turn.turnNumber})">
           <span class="history-item-turn">Tour ${turn.turnNumber}</span>
-          <span class="history-item-character">${matchup}${expBadge}</span>
+          <span class="history-item-character">${matchup}${xpBadge}</span>
           <span class="history-item-result ${resultClass}">${resultText}</span>
         </div>
       `;
@@ -308,8 +308,8 @@ function openUndoModal() {
   const resultText = last.result === 'win' ? 'Victoire' : last.result === 'loss' ? 'Défaite' : 'Match nul';
   let body = `Tour ${last.turnNumber} — ${matchup} (${resultText}) sera supprimé.`;
   if (last.result === 'win' && last.exp) {
-    const total = (last.exp.expCharacter || 0) + (last.exp.expMission || 0) + (last.exp.expSecondary || 0);
-    if (total > 0) body += ` Les ${total} EXP gagnés seront déduits.`;
+    const total = (last.exp.xpCharacter || 0) + (last.exp.xpMission || 0) + (last.exp.xpSecondary || 0);
+    if (total > 0) body += ` Les ${total} XP gagnés seront déduits.`;
   }
   document.getElementById('undoModalBody').textContent = body;
   document.getElementById('undoModal').classList.remove('hidden');
@@ -345,15 +345,15 @@ function openLogModal(turnNumber) {
   let html = '';
 
   if (turn.result === 'win' && turn.exp) {
-    const { expCharacter = 0, expMission = 0, expSecondary = 0 } = turn.exp;
-    const total = expCharacter + expMission + expSecondary;
+    const { xpCharacter = 0, xpMission = 0, xpSecondary = 0 } = turn.exp;
+    const total = xpCharacter + xpMission + xpSecondary;
     if (total > 0) {
       html += `<div style="background:rgba(255,145,0,0.1); border:1px solid rgba(255,145,0,0.3); border-radius:8px; padding:10px 12px; margin-bottom:8px;">`;
-      html += `<div style="font-size:0.7rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--orange2); margin-bottom:6px;">🌟 EXP gagnés</div>`;
-      if (expCharacter > 0) html += `<div>⭐ Personnage : <strong style="color:var(--orange2);">+${expCharacter}</strong></div>`;
-      if (expMission   > 0) html += `<div>🎯 Mission : <strong style="color:var(--orange2);">+${expMission}</strong></div>`;
-      if (expSecondary > 0) html += `<div>📋 Mission(s) secondaire(s) : <strong style="color:var(--orange2);">+${expSecondary}</strong></div>`;
-      html += `<div style="border-top:1px solid rgba(255,145,0,0.2); margin-top:6px; padding-top:6px;">Total : <strong style="color:var(--orange2);">+${total} EXP</strong></div>`;
+      html += `<div style="font-size:0.7rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--orange2); margin-bottom:6px;">🌟 XP gagnés</div>`;
+      if (xpCharacter > 0) html += `<div>⭐ Personnage : <strong style="color:var(--orange2);">+${xpCharacter}</strong></div>`;
+      if (xpMission   > 0) html += `<div>🎯 Mission : <strong style="color:var(--orange2);">+${xpMission}</strong></div>`;
+      if (xpSecondary > 0) html += `<div>📋 Mission(s) secondaire(s) : <strong style="color:var(--orange2);">+${xpSecondary}</strong></div>`;
+      html += `<div style="border-top:1px solid rgba(255,145,0,0.2); margin-top:6px; padding-top:6px;">Total : <strong style="color:var(--orange2);">+${total} XP</strong></div>`;
       html += `</div>`;
     }
   }
