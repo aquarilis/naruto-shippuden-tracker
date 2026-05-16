@@ -31,21 +31,67 @@ body { padding: 16px 14px 32px; }
 .stat-icon { font-size: 1.3rem; }
 .stat-preview-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
 .stat-preview-value { font-size: 1.8rem; font-weight: 800; color: var(--text); }
+
+/* ── Step indicator ── */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.step-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.step-dot.active { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+.step-dot.done   { background: var(--muted); }
+.step-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── Selected ninja summary (step 2) ── */
+.selected-summary {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.selected-summary-name { font-weight: 700; font-size: 0.95rem; }
+.selected-summary-stats { font-size: 0.8rem; color: var(--muted); }
 </style>
 </head>
 <body>
 
-<div id="selectionScreen">
+<!-- ══════════════ STEP 1 : NINJA DU CLAN ══════════════ -->
+<div id="step1Screen">
   <div class="header">
     <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
     <div class="header-center">
       <h1>Sélection du Personnage</h1>
-      <div class="sub" id="pageSubtitle">Choix des combattants</div>
+      <div class="sub" id="step1Subtitle">Tour —</div>
     </div>
-    <img id="teamLogo" src="" alt="Team" class="header-logo-right">
+    <img id="teamLogo1" src="" alt="Team" class="header-logo-right">
   </div>
 
-  <div id="errorMsg" class="error-msg"></div>
+  <div class="step-indicator">
+    <div class="step-dot active" id="dot1a"></div>
+    <div class="step-label">Votre ninja</div>
+    <div style="width:24px; height:1px; background:var(--border);"></div>
+    <div class="step-dot" id="dot1b"></div>
+    <div class="step-label">Adversaire</div>
+  </div>
+
+  <div id="errorMsg1" class="error-msg"></div>
 
   <div class="card">
     <div class="card-label" id="playerCardLabel">Ninja</div>
@@ -73,6 +119,40 @@ body { padding: 16px 14px 32px; }
   <div id="noCharMsg" class="card" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
     Aucun personnage disponible pour ce tour.
   </div>
+
+  <button class="btn btn-orange" id="nextBtn" onclick="goToStep2()" disabled style="opacity:0.4;">Passer à la sélection de l'adversaire →</button>
+  <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
+</div>
+
+<!-- ══════════════ STEP 2 : ADVERSAIRE ══════════════ -->
+<div id="step2Screen" class="hidden">
+  <div class="header">
+    <a href="index.html"><img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left"></a>
+    <div class="header-center">
+      <h1>Sélection de l'Adversaire</h1>
+      <div class="sub" id="step2Subtitle">Tour —</div>
+    </div>
+    <img id="teamLogo2" src="" alt="Team" class="header-logo-right">
+  </div>
+
+  <div class="step-indicator">
+    <div class="step-dot done"></div>
+    <div class="step-label">Votre ninja</div>
+    <div style="width:24px; height:1px; background:var(--border);"></div>
+    <div class="step-dot active"></div>
+    <div class="step-label">Adversaire</div>
+  </div>
+
+  <!-- Selected ninja recap -->
+  <div class="card" style="padding: 12px 16px;">
+    <div class="card-label" style="margin-bottom:8px;">Votre ninja</div>
+    <div class="selected-summary">
+      <span class="selected-summary-name" id="summaryName">—</span>
+      <span class="selected-summary-stats" id="summaryStats">—</span>
+    </div>
+  </div>
+
+  <div id="errorMsg2" class="error-msg"></div>
 
   <div class="card">
     <div class="card-label" id="opponentCardLabel">Adversaire</div>
@@ -102,7 +182,7 @@ body { padding: 16px 14px 32px; }
   </div>
 
   <button class="btn btn-orange" id="startBtn" onclick="startCombat()" disabled style="opacity:0.4;">Commencer le combat →</button>
-  <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
+  <button class="btn btn-ghost" onclick="goBackToStep1()" style="margin-top:8px;">← Retour</button>
 </div>
 
 <script>
@@ -158,10 +238,14 @@ function initializePage() {
     return;
   }
 
-  document.getElementById('teamLogo').src = getTeamLogoPath(gameData.team);
+  const logoPath = getTeamLogoPath(gameData.team);
+  document.getElementById('teamLogo1').src = logoPath;
+  document.getElementById('teamLogo2').src = logoPath;
 
   const currentTurn = gameData.turns.length + 1;
-  document.getElementById('pageSubtitle').textContent = `Choix des combattants — Tour ${currentTurn}`;
+  const tourLabel = `Tour ${currentTurn}`;
+  document.getElementById('step1Subtitle').textContent = tourLabel;
+  document.getElementById('step2Subtitle').textContent = tourLabel;
 
   const myTeam = gameData.team.toLowerCase();
   const opponentTeam = myTeam === 'alliance' ? 'akatsuki' : 'alliance';
@@ -190,7 +274,7 @@ function initializePage() {
   }
 }
 
-function renderStatsPreview(character, previewId, chakraId, hpId) {
+function renderStatsPreview(character, previewId, hpId, chakraId) {
   const preview = document.getElementById(previewId);
   if (!character) {
     preview.style.display = 'none';
@@ -203,25 +287,41 @@ function renderStatsPreview(character, previewId, chakraId, hpId) {
   preview.style.display = 'block';
 }
 
-function updateStartButton() {
-  const startBtn = document.getElementById('startBtn');
-  const ready = selectedCharacter && selectedOpponent;
-  startBtn.disabled = !ready;
-  startBtn.style.opacity = ready ? '1' : '0.4';
-}
-
 function onCharacterChange() {
   const name = document.getElementById('characterSelect').value;
   selectedCharacter = roster.find(c => c.name === name) || null;
-  renderStatsPreview(selectedCharacter, 'statsPreview', 'previewChakra', 'previewHP');
-  updateStartButton();
+  renderStatsPreview(selectedCharacter, 'statsPreview', 'previewHP', 'previewChakra');
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = !selectedCharacter;
+  nextBtn.style.opacity = selectedCharacter ? '1' : '0.4';
 }
 
 function onOpponentChange() {
   const name = document.getElementById('opponentSelect').value;
   selectedOpponent = roster.find(c => c.name === name) || null;
-  renderStatsPreview(selectedOpponent, 'opponentPreview', 'opponentPreviewChakra', 'opponentPreviewHP');
-  updateStartButton();
+  renderStatsPreview(selectedOpponent, 'opponentPreview', 'opponentPreviewHP', 'opponentPreviewChakra');
+  const startBtn = document.getElementById('startBtn');
+  startBtn.disabled = !selectedOpponent;
+  startBtn.style.opacity = selectedOpponent ? '1' : '0.4';
+}
+
+function goToStep2() {
+  if (!selectedCharacter) return;
+
+  // Update recap
+  const totalChakra = (selectedCharacter.mp || 0) + (selectedCharacter.extra_mp || 0);
+  document.getElementById('summaryName').textContent = selectedCharacter.name;
+  document.getElementById('summaryStats').textContent = `❤️ ${selectedCharacter.hp} PV · 💙 ${totalChakra} PC`;
+
+  document.getElementById('step1Screen').classList.add('hidden');
+  document.getElementById('step2Screen').classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+function goBackToStep1() {
+  document.getElementById('step2Screen').classList.add('hidden');
+  document.getElementById('step1Screen').classList.remove('hidden');
+  window.scrollTo(0, 0);
 }
 
 function startCombat() {
