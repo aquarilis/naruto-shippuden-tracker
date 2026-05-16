@@ -48,6 +48,12 @@ body {
   height: auto;
 }
 
+a:has(.header-logo-left) {
+  position: absolute;
+  left: 0;
+  line-height: 0;
+}
+
 .header-logo-right {
   position: absolute;
   right: 0;
@@ -187,7 +193,7 @@ select:focus { border-color: var(--orange); }
 
 <div id="selectionScreen">
   <div class="header">
-    <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
+    <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
     <div>
       <h1>Sélection du Personnage</h1>
       <div class="sub" id="pageSubtitle">Choix des combattants</div>

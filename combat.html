@@ -68,6 +68,12 @@ body {
   height: auto;
 }
 
+a:has(.header-logo-left) {
+  position: absolute;
+  left: 0;
+  line-height: 0;
+}
+
 .header-logo-right {
   position: absolute;
   right: 0;
@@ -442,7 +448,7 @@ input:focus { border-color: var(--orange); }
 <!-- ══════════════ COMBAT ══════════════ -->
 <div id="combatScreen" class="hidden">
   <div class="header combat-header">
-    <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
+    <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
     <h1 id="combatTitle">Combat</h1>
     <img id="teamLogo" src="" alt="Team" class="header-logo-right">
   </div>
@@ -503,7 +509,7 @@ input:focus { border-color: var(--orange); }
 <!-- ══════════════ RECORD SCREEN ══════════════ -->
 <div id="recordScreen" class="hidden">
   <div class="header">
-    <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
+    <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
     <div>
       <h1>Tour Terminé</h1>
       <div class="sub">Enregistrement du résultat</div>

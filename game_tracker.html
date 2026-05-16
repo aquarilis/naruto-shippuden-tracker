@@ -48,6 +48,12 @@ body {
   height: auto;
 }
 
+a:has(.header-logo-left) {
+  position: absolute;
+  left: 0;
+  line-height: 0;
+}
+
 .header-logo-right {
   position: absolute;
   right: 0;
@@ -275,7 +281,7 @@ body {
 
 <div id="gameScreen">
 <div class="header">
-  <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
+  <a href="index.html"><img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left"></a>
   <div>
     <h1>Suivi de Partie</h1>
     <div id="teamName" style="font-size:0.8rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; text-align:center; margin-top:4px;"></div>
