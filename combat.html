@@ -663,7 +663,7 @@ function confirmAction() {
   if (dmg > 0)         parts.push(`<span class="c-hp">−${dmg} PV</span>`);
   if (heal > 0)        parts.push(`<span class="c-heal">+${heal} PV (soin)</span>`);
   const effect = parts.length ? parts.join(', ') : 'aucun effet';
-  G.log.push(`<b>R${G.round}A${G.action}</b> ${effect} → ❤️${G.hp} 💙${G.chakra}`);
+  G.log.push(`<b>Round ${G.round} - Action ${G.action}</b> ${effect} → ❤️${G.hp} 💙${G.chakra}`);
 
   // KO ?
   if (G.hp <= 0) {
@@ -784,7 +784,8 @@ function recordResult(result) {
     },
     opponent: G.opponent || null,
     result: result,
-    combatRounds: G.round
+    combatRounds: G.round,
+    combatLog: [...G.log]
   };
   gameData.turns.push(turn);
   sessionStorage.setItem('gameData', JSON.stringify(gameData));

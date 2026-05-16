@@ -193,6 +193,75 @@ body {
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+/* ── Combat log modal ── */
+.log-modal-overlay {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 14px;
+  overflow-y: auto;
+}
+
+.log-modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.log-modal-title {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 4px;
+}
+
+.log-modal-subtitle {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.log-modal-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.log-modal-entries .c-round {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+.log-modal-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 12px 0;
+}
+
+.history-item {
+  cursor: pointer;
+}
+
+.history-item:active {
+  opacity: 0.75;
+}
+
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -230,6 +299,16 @@ body {
 <button class="btn btn-ghost" onclick="window.location.href='index.html'">Quitter la partie</button>
 </div>
 
+<!-- ── Combat log modal ── -->
+<div id="logModal" class="log-modal-overlay hidden" onclick="closeLogModal(event)">
+  <div class="log-modal">
+    <div class="log-modal-title" id="logModalTitle"></div>
+    <div class="log-modal-subtitle" id="logModalSubtitle"></div>
+    <div class="log-modal-entries" id="logModalEntries"></div>
+    <button class="btn btn-ghost" onclick="document.getElementById('logModal').classList.add('hidden')">Fermer</button>
+  </div>
+</div>
+
 <script>
 function getGameData() {
   return JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
@@ -264,10 +343,11 @@ function renderGameTracker() {
     historyList.innerHTML = [...gameData.turns].reverse().map(turn => {
       const resultClass = `result-${turn.result}`;
       const resultText = turn.result === 'win' ? 'Victoire' : turn.result === 'loss' ? 'Défaite' : 'Match nul';
+      const matchup = `${turn.playerCharacter.name}${turn.opponent ? ` vs. ${turn.opponent}` : ''}`;
       return `
-        <div class="history-item">
+        <div class="history-item" onclick="openLogModal(${turn.turnNumber})">
           <span class="history-item-turn">Tour ${turn.turnNumber}</span>
-          <span class="history-item-character">${turn.playerCharacter.name}${turn.opponent ? ` vs. ${turn.opponent}` : ''}</span>
+          <span class="history-item-character">${matchup}</span>
           <span class="history-item-result ${resultClass}">${resultText}</span>
         </div>
       `;
@@ -277,6 +357,33 @@ function renderGameTracker() {
 
 function startNewTurn() {
   window.location.href = 'character_selection.html';
+}
+
+function openLogModal(turnNumber) {
+  const gameData = getGameData();
+  const turn = gameData.turns.find(t => t.turnNumber === turnNumber);
+  if (!turn) return;
+
+  const matchup = `${turn.playerCharacter.name}${turn.opponent ? ` vs. ${turn.opponent}` : ''}`;
+  const resultText = turn.result === 'win' ? 'Victoire' : turn.result === 'loss' ? 'Défaite' : 'Match nul';
+
+  document.getElementById('logModalTitle').textContent = `Tour ${turn.turnNumber} — ${matchup}`;
+  document.getElementById('logModalSubtitle').textContent = `${resultText} · ${turn.combatRounds} round${turn.combatRounds > 1 ? 's' : ''}`;
+
+  const entries = document.getElementById('logModalEntries');
+  if (!turn.combatLog || turn.combatLog.length === 0) {
+    entries.innerHTML = '<div class="log-modal-empty">Aucun historique disponible</div>';
+  } else {
+    entries.innerHTML = turn.combatLog.map(line => `<div>${line}</div>`).join('');
+  }
+
+  document.getElementById('logModal').classList.remove('hidden');
+}
+
+function closeLogModal(event) {
+  if (event.target === document.getElementById('logModal')) {
+    document.getElementById('logModal').classList.add('hidden');
+  }
 }
 
 // Initialize on page load
