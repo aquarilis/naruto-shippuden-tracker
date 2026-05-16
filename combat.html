@@ -549,8 +549,8 @@ input:focus { border-color: var(--orange); }
 // ── State ──────────────────────────────────────────────
 let G = {};
 
-function startCombatWithParams(name, maxHP, maxChakra) {
-  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra });
+function startCombatWithParams(name, maxHP, maxChakra, opponent) {
+  console.log('startCombatWithParams called with:', { name, maxHP, maxChakra, opponent });
 
   G = {
     name,
@@ -558,6 +558,7 @@ function startCombatWithParams(name, maxHP, maxChakra) {
     maxChakra,
     hp: maxHP,
     chakra: maxChakra,
+    opponent: opponent || null,
     round: 1,
     action: 1,
     log: []
@@ -579,7 +580,7 @@ function startCombatWithParams(name, maxHP, maxChakra) {
 
 // ── Render ─────────────────────────────────────────────
 function renderCombat() {
-  document.getElementById('combatTitle').textContent = G.name;
+  document.getElementById('combatTitle').textContent = G.opponent ? `${G.name} vs. ${G.opponent}` : G.name;
   document.getElementById('labelRounds').textContent = `Rounds ${G.round}/3`;
   document.getElementById('labelActions').textContent = `Action ${G.action}/3`;
   document.getElementById('actionLabel').textContent = G.action;
@@ -781,6 +782,7 @@ function recordResult(result) {
       hp: G.maxHP,
       chakra: G.maxChakra
     },
+    opponent: G.opponent || null,
     result: result,
     combatRounds: G.round
   };
@@ -800,6 +802,7 @@ function initFromURL() {
   const name = params.get('name') || 'Ninja';
   const hp = parseInt(params.get('hp')) || 0;
   const chakra = parseInt(params.get('chakra')) || 0;
+  const opponent = params.get('opponent') || null;
 
   const gameData = JSON.parse(sessionStorage.getItem('gameData')) || {};
   const team = gameData.team || null;
@@ -814,7 +817,11 @@ function initFromURL() {
   const teamLogoElem = document.getElementById('teamLogo');
   if (teamLogoElem) teamLogoElem.src = teamLogoPath;
 
-  startCombatWithParams(name, hp, chakra);
+  // Set combat title
+  const titleElem = document.getElementById('combatTitle');
+  if (titleElem) titleElem.textContent = opponent ? `${name} vs. ${opponent}` : name;
+
+  startCombatWithParams(name, hp, chakra, opponent);
 }
 
 // Initialize from URL parameters on page load

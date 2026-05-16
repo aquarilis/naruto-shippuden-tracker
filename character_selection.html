@@ -227,6 +227,36 @@ select:focus { border-color: var(--orange); }
     Aucun personnage disponible pour ce tour.
   </div>
 
+  <div class="card">
+    <div class="card-label">Adversaire</div>
+    <div class="field">
+      <label>Choisir l'adversaire</label>
+      <select id="opponentSelect" onchange="onOpponentChange()">
+        <option value="">— Sélectionner —</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="opponentPreview" class="card" style="display:none;">
+    <div class="card-label">Statistiques adversaire</div>
+    <div class="stats-grid">
+      <div class="stat-preview">
+        <span class="stat-icon">❤️</span>
+        <span class="stat-preview-label">PV</span>
+        <span class="stat-preview-value" id="opponentPreviewHP">—</span>
+      </div>
+      <div class="stat-preview">
+        <span class="stat-icon">💙</span>
+        <span class="stat-preview-label">Chakra</span>
+        <span class="stat-preview-value" id="opponentPreviewChakra">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="noOpponentMsg" class="card" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
+    Aucun adversaire disponible pour ce tour.
+  </div>
+
   <button class="btn btn-orange" id="startBtn" onclick="startCombat()" disabled style="opacity:0.4;">Commencer le combat →</button>
   <button class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
 </div>
@@ -242,6 +272,7 @@ let roster = [
     {"name":"Obito","team":"akatsuki","hp":12,"mp":2,"extra_mp":null,"available_from_turn":2}
 ];
 let selectedCharacter = null;
+let selectedOpponent = null;
 
 function getGameData() {
   return JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
@@ -249,6 +280,17 @@ function getGameData() {
 
 function getTeamLogoPath(team) {
   return team === 'alliance' ? 'img/alliance_shinobi.png' : 'img/akatsuki.png';
+}
+
+function populateSelect(selectId, characters) {
+  const select = document.getElementById(selectId);
+  select.innerHTML = '<option value="">— Sélectionner —</option>';
+  characters.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
 }
 
 function initializePage() {
@@ -262,62 +304,74 @@ function initializePage() {
   document.getElementById('teamLogo').src = getTeamLogoPath(gameData.team);
 
   const currentTurn = gameData.turns.length + 1;
+  const myTeam = gameData.team.toLowerCase();
+  const opponentTeam = myTeam === 'alliance' ? 'akatsuki' : 'alliance';
 
   const available = roster.filter(c =>
-    c.team.toLowerCase() === gameData.team.toLowerCase() &&
-    c.available_from_turn <= currentTurn
+    c.team.toLowerCase() === myTeam && c.available_from_turn <= currentTurn
+  );
+  const opponents = roster.filter(c =>
+    c.team.toLowerCase() === opponentTeam && c.available_from_turn <= currentTurn
   );
 
-  const select = document.getElementById('characterSelect');
-
   if (available.length === 0) {
-    select.parentElement.style.display = 'none';
+    document.getElementById('characterSelect').parentElement.style.display = 'none';
     document.getElementById('noCharMsg').style.display = 'block';
-    return;
+  } else {
+    populateSelect('characterSelect', available);
   }
 
-  available.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.name;
-    opt.textContent = c.name;
-    select.appendChild(opt);
-  });
+  if (opponents.length === 0) {
+    document.getElementById('opponentSelect').parentElement.style.display = 'none';
+    document.getElementById('noOpponentMsg').style.display = 'block';
+  } else {
+    populateSelect('opponentSelect', opponents);
+  }
+}
+
+function renderStatsPreview(character, previewId, chakraId, hpId) {
+  const preview = document.getElementById(previewId);
+  if (!character) {
+    preview.style.display = 'none';
+    return;
+  }
+  document.getElementById(hpId).textContent = character.hp;
+  document.getElementById(chakraId).textContent = character.extra_mp
+    ? `${character.mp}+${character.extra_mp}`
+    : character.mp;
+  preview.style.display = 'block';
+}
+
+function updateStartButton() {
+  const startBtn = document.getElementById('startBtn');
+  const ready = selectedCharacter && selectedOpponent;
+  startBtn.disabled = !ready;
+  startBtn.style.opacity = ready ? '1' : '0.4';
 }
 
 function onCharacterChange() {
-  const select = document.getElementById('characterSelect');
-  const name = select.value;
+  const name = document.getElementById('characterSelect').value;
   selectedCharacter = roster.find(c => c.name === name) || null;
+  renderStatsPreview(selectedCharacter, 'statsPreview', 'previewChakra', 'previewHP');
+  updateStartButton();
+}
 
-  const preview = document.getElementById('statsPreview');
-  const startBtn = document.getElementById('startBtn');
-
-  if (!selectedCharacter) {
-    preview.style.display = 'none';
-    startBtn.disabled = true;
-    startBtn.style.opacity = '0.4';
-    return;
-  }
-
-  const totalChakra = (selectedCharacter.mp || 0) + (selectedCharacter.extra_mp || 0);
-  document.getElementById('previewHP').textContent = selectedCharacter.hp;
-  document.getElementById('previewChakra').textContent = selectedCharacter.extra_mp
-    ? `${selectedCharacter.mp}+${selectedCharacter.extra_mp}`
-    : selectedCharacter.mp;
-
-  preview.style.display = 'block';
-  startBtn.disabled = false;
-  startBtn.style.opacity = '1';
+function onOpponentChange() {
+  const name = document.getElementById('opponentSelect').value;
+  selectedOpponent = roster.find(c => c.name === name) || null;
+  renderStatsPreview(selectedOpponent, 'opponentPreview', 'opponentPreviewChakra', 'opponentPreviewHP');
+  updateStartButton();
 }
 
 function startCombat() {
-  if (!selectedCharacter) return;
+  if (!selectedCharacter || !selectedOpponent) return;
 
   const totalChakra = (selectedCharacter.mp || 0) + (selectedCharacter.extra_mp || 0);
   const params = new URLSearchParams({
     name: selectedCharacter.name,
     hp: selectedCharacter.hp,
-    chakra: totalChakra
+    chakra: totalChakra,
+    opponent: selectedOpponent.name
   });
 
   window.location.href = `combat.html?${params.toString()}`;

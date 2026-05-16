@@ -207,7 +207,10 @@ body {
 <div id="gameScreen">
 <div class="header">
   <img src="img/naruto_shippuden_logo.png" alt="Naruto" class="header-logo-left">
-  <h1>Suivi de Partie</h1>
+  <div>
+    <h1>Suivi de Partie</h1>
+    <div id="teamName" style="font-size:0.8rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; text-align:center; margin-top:4px;"></div>
+  </div>
   <img id="teamLogo" src="" alt="Team" class="header-logo-right">
 </div>
 
@@ -245,8 +248,9 @@ function renderGameTracker() {
     return;
   }
 
-  // Set team logo
+  // Set team logo and name
   document.getElementById('teamLogo').src = getTeamLogoPath(gameData.team);
+  document.getElementById('teamName').textContent = gameData.team === 'alliance' ? 'Alliance Shinobi' : 'Akatsuki';
 
   // Update tour count
   const nextTour = gameData.turns.length + 1;
@@ -257,13 +261,13 @@ function renderGameTracker() {
   if (gameData.turns.length === 0) {
     historyList.innerHTML = '<div class="empty-state">Aucun tour pour l\'instant</div>';
   } else {
-    historyList.innerHTML = gameData.turns.map(turn => {
+    historyList.innerHTML = [...gameData.turns].reverse().map(turn => {
       const resultClass = `result-${turn.result}`;
       const resultText = turn.result === 'win' ? 'Victoire' : turn.result === 'loss' ? 'Défaite' : 'Match nul';
       return `
         <div class="history-item">
           <span class="history-item-turn">Tour ${turn.turnNumber}</span>
-          <span class="history-item-character">${turn.playerCharacter.name}</span>
+          <span class="history-item-character">${turn.playerCharacter.name}${turn.opponent ? ` vs. ${turn.opponent}` : ''}</span>
           <span class="history-item-result ${resultClass}">${resultText}</span>
         </div>
       `;
