@@ -195,7 +195,7 @@ input:focus { border-color: var(--orange); }
 .bar-hp { background: linear-gradient(90deg, var(--hp-dark), var(--hp)); }
 .bar-chakra { background: linear-gradient(90deg, var(--chakra-dark), var(--chakra)); }
 
-/* ── Round / Tour indicators ── */
+/* ── Round / Action indicators ── */
 .badge-row {
   display: flex;
   align-items: center;
@@ -399,15 +399,15 @@ input:focus { border-color: var(--orange); }
     <h1 id="combatTitle">Combat</h1>
   </div>
 
-  <!-- Round + Tour badges -->
+  <!-- Round + Action badges -->
   <div class="badge-row">
     <div>
       <div class="card-label" style="margin-bottom:5px;" id="labelRounds">Rounds 1/3</div>
       <div class="pip-row" id="roundPips"></div>
     </div>
     <div style="text-align:right;">
-      <div class="card-label" style="margin-bottom:5px; text-align:right;" id="labelTours">Tours 1/3</div>
-      <div class="pip-row" id="tourPips" style="justify-content:flex-end;"></div>
+      <div class="card-label" style="margin-bottom:5px; text-align:right;" id="labelActions">Action 1/3</div>
+      <div class="pip-row" id="actionPips" style="justify-content:flex-end;"></div>
     </div>
   </div>
 
@@ -436,8 +436,8 @@ input:focus { border-color: var(--orange); }
   </div>
 
   <!-- Turn inputs -->
-  <div class="card" id="tourCard">
-    <div class="card-label">Tour <span id="tourLabel">1</span> / 3 — Saisir les effets</div>
+  <div class="card" id="actionCard">
+    <div class="card-label">Action <span id="actionLabel">1</span> / 3 — Saisir les effets</div>
 
     <div class="stepper-wrap chakra-wrap">
       <label><span class="icon">💙</span> Coût en chakra de la carte action</label>
@@ -471,7 +471,7 @@ input:focus { border-color: var(--orange); }
 
     <div class="heal-toggle" id="healToggle" onclick="toggleHeal()">+ Utiliser une carte soin</div>
 
-    <button class="btn btn-orange" onclick="confirmTour()">Valider le tour →</button>
+    <button class="btn btn-orange" onclick="confirmAction()">Valider l'action →</button>
   </div>
 
   <!-- Log -->
@@ -531,7 +531,7 @@ function startCombat() {
     hp: maxHP,
     chakra: maxChakra,
     round: 1,
-    tour: 1,
+    action: 1,
     log: []
   };
 
@@ -546,8 +546,8 @@ function startCombat() {
 function renderCombat() {
   document.getElementById('combatTitle').textContent = G.name;
   document.getElementById('labelRounds').textContent = `Rounds ${G.round}/3`;
-  document.getElementById('labelTours').textContent = `Tours ${G.tour}/3`;
-  document.getElementById('tourLabel').textContent = G.tour;
+  document.getElementById('labelActions').textContent = `Action ${G.action}/3`;
+  document.getElementById('actionLabel').textContent = G.action;
 
   // HP
   document.getElementById('dispHP').textContent = G.hp;
@@ -563,7 +563,7 @@ function renderCombat() {
 
   // Pips
   renderPips('roundPips', 3, G.round);
-  renderPips('tourPips', 3, G.tour);
+  renderPips('actionPips', 3, G.action);
 
   // Reset inputs
   resetInputs();
@@ -598,8 +598,8 @@ function resetInputs() {
   document.getElementById('healToggle').textContent = '+ Utiliser une carte soin';
 }
 
-// ── Tour logic ─────────────────────────────────────────
-function confirmTour() {
+// ── Action logic ─────────────────────────────────────────
+function confirmAction() {
   const chakraSpent = Math.max(0, parseInt(document.getElementById('inputChakra').value) || 0);
   const dmg         = Math.max(0, parseInt(document.getElementById('inputDmg').value) || 0);
   const heal        = Math.max(0, parseInt(document.getElementById('inputHeal').value) || 0);
@@ -621,7 +621,7 @@ function confirmTour() {
   if (dmg > 0)         parts.push(`<span class="c-hp">−${dmg} PV</span>`);
   if (heal > 0)        parts.push(`<span class="c-heal">+${heal} PV (soin)</span>`);
   const effect = parts.length ? parts.join(', ') : 'aucun effet';
-  G.log.push(`<b>R${G.round}T${G.tour}</b> ${effect} → ❤️${G.hp} 💙${G.chakra}`);
+  G.log.push(`<b>R${G.round}A${G.action}</b> ${effect} → ❤️${G.hp} 💙${G.chakra}`);
 
   // KO ?
   if (G.hp <= 0) {
@@ -630,8 +630,8 @@ function confirmTour() {
   }
 
   // Advance
-  if (G.tour < 3) {
-    G.tour++;
+  if (G.action < 3) {
+    G.action++;
     renderCombat();
   } else {
     endOfRound();
@@ -658,7 +658,7 @@ function endOfRound() {
   G.log.push(`<span class="c-round">── Fin Round ${G.round} • Début Round ${nextRound} • Chakra : ${before} + ${G.maxChakra} = ${G.chakra} PC ──</span>`);
 
   G.round = nextRound;
-  G.tour = 1;
+  G.action = 1;
 
   show('roundOverlay');
 }
@@ -681,7 +681,7 @@ function endCombat(reason) {
     document.getElementById('endTitle').textContent = 'KO !';
     document.getElementById('endTitle').style.color = 'var(--hp)';
     document.getElementById('endSub').textContent =
-      `${G.name} est tombé au Round ${rounds}, Tour ${G.tour}. Le combat est terminé.`;
+      `${G.name} est tombé au Round ${rounds}, Action ${G.action}. Le combat est terminé.`;
   } else {
     document.getElementById('endIcon').textContent = '⚖️';
     document.getElementById('endTitle').textContent = 'Égalité';
