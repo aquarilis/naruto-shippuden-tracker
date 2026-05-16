@@ -48,12 +48,12 @@ body { padding: 16px 14px 32px; }
   position: relative;
   border-radius: 12px;
   border: 2px solid var(--border);
-  overflow: hidden;
   cursor: pointer;
   transition: border-color 0.15s, transform 0.1s;
   background: var(--card);
   display: inline-block;
   width: auto;
+  flex-shrink: 0;
 }
 
 .roster-card:active { transform: scale(0.97); }
@@ -192,14 +192,14 @@ body { padding: 16px 14px 32px; }
     <div style="text-align:center; flex:1;">
       <div class="card-label" style="margin-bottom:8px;">Votre ninja</div>
       <div style="display:inline-block; border-radius:12px; border:2px solid var(--orange); overflow:hidden;">
-        <img id="confirmPlayerImg" src="" alt="" style="display:block; height:320px; width:auto;">
+        <img id="confirmPlayerImg" src="" alt="" style="display:block; height:200px; width:auto; max-width:100%;">
       </div>
     </div>
-    <div style="display:flex; align-items:center; padding-top:140px; font-size:1.5rem; font-weight:900; color:var(--muted);">VS</div>
+    <div style="display:flex; align-items:center; padding-top:90px; font-size:1.5rem; font-weight:900; color:var(--muted);">VS</div>
     <div style="text-align:center; flex:1;">
       <div class="card-label" style="margin-bottom:8px;">Adversaire</div>
       <div style="display:inline-block; border-radius:12px; border:2px solid var(--hp); overflow:hidden;">
-        <img id="confirmOpponentImg" src="" alt="" style="display:block; height:320px; width:auto;">
+        <img id="confirmOpponentImg" src="" alt="" style="display:block; height:200px; width:auto; max-width:100%;">
       </div>
     </div>
   </div>
