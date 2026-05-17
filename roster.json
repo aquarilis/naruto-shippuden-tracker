@@ -55,7 +55,7 @@
         "roster_image": "tsunade.png"
     },
     {
-        "name": "Naruo Uzumaki",
+        "name": "Naruto Uzumaki",
         "team": "akatsuki",
         "hp": 67,
         "mp": 22,
@@ -64,5 +64,49 @@
         "available_from_turn": 2,
         "available_until_turn": 4,
         "roster_image": "naruto_uzumaki_deck_3.png"
+    },
+    {
+        "name": "Madara Uchiha",
+        "team": "akatsuki",
+        "hp": 67,
+        "mp": 22,
+        "extra_mp": 5,
+        "xp": 4,
+        "available_from_turn": 1,
+        "available_until_turn": 4,
+        "roster_image": "madara.png"
+    },
+    {
+        "name": "Orochimaru",
+        "team": "akatsuki",
+        "hp": 67,
+        "mp": 22,
+        "extra_mp": 5,
+        "xp": 4,
+        "available_from_turn": 1,
+        "available_until_turn": 4,
+        "roster_image": "orochimaru.png"
+    },
+    {
+        "name": "Kaguya Otsutsuki",
+        "team": "akatsuki",
+        "hp": 67,
+        "mp": 22,
+        "extra_mp": 5,
+        "xp": 4,
+        "available_from_turn": 1,
+        "available_until_turn": 4,
+        "roster_image": "kaguya.png"
+    },
+    {
+        "name": "Itachi Uchiha",
+        "team": "akatsuki",
+        "hp": 67,
+        "mp": 22,
+        "extra_mp": 5,
+        "xp": 4,
+        "available_from_turn": 1,
+        "available_until_turn": 4,
+        "roster_image": "itachi.png"
     }
 ]
