@@ -260,7 +260,7 @@ body { padding: 16px 14px 32px; }
     <div class="carousel-dots" id="characterCarouselDots"></div>
   </div>
 
-  <button type="button" class="btn btn-orange" id="nextBtn" onclick="goToStep2()" disabled style="opacity:0.4;">Suivant →</button>
+  <button type="button" class="btn btn-orange" id="nextBtn" onclick="goToStep2()" disabled>Suivant →</button>
   <button type="button" class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:8px;">Annuler</button>
 </div>
 
@@ -325,7 +325,7 @@ body { padding: 16px 14px 32px; }
     <div class="carousel-dots" id="opponentCarouselDots"></div>
   </div>
 
-  <button type="button" class="btn btn-orange" id="startBtn" onclick="goToConfirm()" disabled style="opacity:0.4;">Suivant →</button>
+  <button type="button" class="btn btn-orange" id="startBtn" onclick="goToConfirm()" disabled>Suivant →</button>
   <button type="button" class="btn btn-ghost" onclick="goBackToStep1()" style="margin-top:8px;">← Retour</button>
 </div>
 
@@ -476,7 +476,7 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
       // Deselect — unavailable card clicked
       cs.selected = null;
       const btn = document.getElementById(context === 'player' ? 'nextBtn' : 'startBtn');
-      btn.disabled = true; btn.style.opacity = '0.4';
+      btn.disabled = true; btn.style.opacity = '';
       if (context === 'player') selectedCharacter = null;
       else selectedOpponent = null;
     }
@@ -529,22 +529,33 @@ function carouselRender(context) {
   if (c) {
     const available = unlock || isAvailable(c, currentTurn);
     updateCarouselInfo(context, c, available, currentTurn);
-    // Restore selected highlight
     const stageEl = document.getElementById(stageId);
-    stageEl.querySelectorAll('.carousel-card').forEach((card, i) => {
-      card.classList.toggle('cc-selected', cs.selected && cs.items[i].name === cs.selected.name);
-    });
-    // Disable button whenever centered card is unavailable
-    if (!available) {
+    if (available) {
+      // Auto-select centered card
+      cs.selected = c;
+      if (context === 'player') {
+        selectedCharacter = c;
+        const btn = document.getElementById('nextBtn');
+        btn.disabled = false; btn.style.opacity = '';
+      } else {
+        selectedOpponent = c;
+        const btn = document.getElementById('startBtn');
+        btn.disabled = false; btn.style.opacity = '';
+      }
+      stageEl.querySelectorAll('.carousel-card').forEach((card, i) => {
+        card.classList.toggle('cc-selected', cs.items[i].name === c.name);
+      });
+    } else {
+      // Centered card unavailable — clear selection
       cs.selected = null;
       if (context === 'player') {
         selectedCharacter = null;
         const btn = document.getElementById('nextBtn');
-        btn.disabled = true; btn.style.opacity = '0.4';
+        btn.disabled = true; btn.style.opacity = '';
       } else {
         selectedOpponent = null;
         const btn = document.getElementById('startBtn');
-        btn.disabled = true; btn.style.opacity = '0.4';
+        btn.disabled = true; btn.style.opacity = '';
       }
       stageEl.querySelectorAll('.carousel-card').forEach(el => el.classList.remove('cc-selected'));
     }
@@ -564,6 +575,8 @@ function updateCarouselInfo(context, c, available, currentTurn) {
 function setupCarouselSwipe(context) {
   const wrapId = context === 'player' ? 'characterCarouselWrap' : 'opponentCarouselWrap';
   const wrap = document.getElementById(wrapId);
+  if (wrap._swipeBound) return;
+  wrap._swipeBound = true;
   let touchStartX = null;
   let touchStartY = null;
   let lockAxis = null; // 'h' | 'v' | null
@@ -578,7 +591,10 @@ function setupCarouselSwipe(context) {
     if (touchStartX === null) return;
     const dx = e.touches[0].clientX - touchStartX;
     const dy = e.touches[0].clientY - touchStartY;
-    if (!lockAxis) lockAxis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    if (!lockAxis) {
+      lockAxis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      if (lockAxis === 'h') window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
     if (lockAxis === 'h') e.preventDefault();
   }, { passive: false });
 
@@ -614,20 +630,22 @@ function toggleViewMode(context) {
   viewModes.player = mode;
   viewModes.opponent = mode;
   localStorage.setItem('viewMode', mode);
-  applyViewMode(context);
-  // Rebuild in new mode
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
-  const chars = getActiveRoster(context);
-  const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
-  const onSel = context === 'player' ? onCharacterSelect : onOpponentSelect;
-  if (mode === 'carousel') {
-    buildCarousel(context, chars, currentTurn, onSel, unlock);
-  } else {
-    const gridId = context === 'player' ? 'characterGrid' : 'opponentGrid';
-    buildRosterGrid(gridId, chars, currentTurn, onSel, unlock);
-    setupGridWheel(gridId);
-  }
+  // Rebuild BOTH contexts so they stay in sync
+  ['player', 'opponent'].forEach(ctx => {
+    applyViewMode(ctx);
+    const chars = getActiveRoster(ctx);
+    const unlock = ctx === 'player' ? unlockPlayer : unlockOpponent;
+    const onSel  = ctx === 'player' ? onCharacterSelect : onOpponentSelect;
+    if (mode === 'carousel') {
+      buildCarousel(ctx, chars, currentTurn, onSel, unlock);
+    } else {
+      const gridId = ctx === 'player' ? 'characterGrid' : 'opponentGrid';
+      buildRosterGrid(gridId, chars, currentTurn, onSel, unlock);
+      setupGridWheel(gridId);
+    }
+  });
 }
 
 function applyViewMode(context) {
@@ -900,7 +918,6 @@ function goToStep2() {
 
 let sortKey = 'availability';
 let sortGridId = null;
-let sortGridOnSelect = null;
 
 function openSortMenu(gridId, btn) {
   sortGridId = gridId;
@@ -1007,11 +1024,12 @@ function confirmUnlock() {
 
 function unlockGridInPlace(gridId, onSelect) {
   const grid = document.getElementById(gridId);
-  // Deselect all first
   grid.querySelectorAll('.roster-card').forEach(card => card.classList.remove('selected'));
-  // Unlock unavailable cards in place (keep order and captions)
   grid.querySelectorAll('.roster-card.unavailable').forEach(card => {
     card.classList.remove('unavailable');
+    card.title = '';
+    const caption = card.querySelector('.roster-card-caption');
+    if (caption) caption.remove();
     const name = card.dataset.name;
     const c = roster.find(r => r.name === name);
     if (c) card.addEventListener('click', () => onSelect(c, card, gridId));
