@@ -534,6 +534,20 @@ function carouselRender(context) {
     stageEl.querySelectorAll('.carousel-card').forEach((card, i) => {
       card.classList.toggle('cc-selected', cs.selected && cs.items[i].name === cs.selected.name);
     });
+    // Disable button whenever centered card is unavailable
+    if (!available) {
+      cs.selected = null;
+      if (context === 'player') {
+        selectedCharacter = null;
+        const btn = document.getElementById('nextBtn');
+        btn.disabled = true; btn.style.opacity = '0.4';
+      } else {
+        selectedOpponent = null;
+        const btn = document.getElementById('startBtn');
+        btn.disabled = true; btn.style.opacity = '0.4';
+      }
+      stageEl.querySelectorAll('.carousel-card').forEach(el => el.classList.remove('cc-selected'));
+    }
   }
 }
 
