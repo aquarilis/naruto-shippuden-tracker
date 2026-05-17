@@ -537,12 +537,32 @@ function setupCarouselSwipe(context) {
   const wrapId = context === 'player' ? 'characterCarouselWrap' : 'opponentCarouselWrap';
   const wrap = document.getElementById(wrapId);
   let touchStartX = null;
-  wrap.ontouchstart = e => { touchStartX = e.touches[0].clientX; };
+  let touchStartY = null;
+  let lockAxis = null; // 'h' | 'v' | null
+
+  wrap.ontouchstart = e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    lockAxis = null;
+  };
+
+  wrap.addEventListener('touchmove', e => {
+    if (touchStartX === null) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (!lockAxis) lockAxis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    if (lockAxis === 'h') e.preventDefault();
+  }, { passive: false });
+
   wrap.ontouchend = e => {
     if (touchStartX === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) carouselGoTo(context, carouselState[context].index + (dx < 0 ? 1 : -1));
+    if (lockAxis === 'h' && Math.abs(dx) > 40) {
+      carouselGoTo(context, carouselState[context].index + (dx < 0 ? 1 : -1));
+    }
     touchStartX = null;
+    touchStartY = null;
+    lockAxis = null;
   };
   // Arrow keys when focused
   wrap.tabIndex = 0;
