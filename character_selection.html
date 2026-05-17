@@ -824,7 +824,22 @@ function onOpponentSelect(c, card) {
   startBtn.style.opacity = '';
 }
 
+function syncCarouselSelection(context) {
+  if (viewModes[context] !== 'carousel') return;
+  const cs = carouselState[context];
+  if (!cs.items.length) return;
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+  const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
+  const c = cs.items[cs.index];
+  const available = unlock || isAvailable(c, currentTurn);
+  if (context === 'player') selectedCharacter = available ? c : null;
+  else selectedOpponent = available ? c : null;
+}
+
 function goToConfirm() {
+  syncCarouselSelection('player');
+  syncCarouselSelection('opponent');
   if (!selectedCharacter || !selectedOpponent) return;
   document.getElementById('confirmPlayerImg').src = selectedCharacter.roster_image
     ? `img/roster/${selectedCharacter.roster_image}` : '';
@@ -902,6 +917,7 @@ function initializePage() {
 }
 
 function goToStep2() {
+  syncCarouselSelection('player');
   if (!selectedCharacter) return;
 
   const totalChakra = (selectedCharacter.mp || 0) + (selectedCharacter.extra_mp || 0);
