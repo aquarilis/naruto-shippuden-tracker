@@ -659,7 +659,7 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
     } else if (notYet) {
       const overlay = document.createElement('div');
       overlay.className = 'cc-pending-overlay';
-      overlay.innerHTML = '<span class="pending-icon">⏳</span><span class="pending-label">Indisponible\npour l\'instant</span>';
+      overlay.innerHTML = '<span class="pending-icon">⏳</span><span class="pending-label">Hors tour</span>';
       frame.appendChild(overlay);
     }
 
@@ -800,10 +800,7 @@ function updateCarouselInfo(context, c, available, currentTurn, sameAsPlayer) {
   const defeated = !unlock && isDefeated(c);
   document.getElementById(`${prefix}CarouselName`).textContent = c.display_name;
   document.getElementById(`${prefix}CarouselStats`).textContent =
-    available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`
-    : sameAsPlayer ? 'Déjà choisi'
-    : defeated ? 'Vaincu(e)'
-    : '';
+    available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP` : '';
 }
 
 function setupCarouselSwipe(context) {
@@ -1048,7 +1045,7 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
     } else if (notYet) {
       const overlay = document.createElement('div');
       overlay.className = 'roster-card-pending-overlay';
-      overlay.innerHTML = '<span class="pending-icon">⏳</span><span class="pending-label">Indisponible\npour l\'instant</span>';
+      overlay.innerHTML = '<span class="pending-icon">⏳</span><span class="pending-label">Hors tour</span>';
       card.appendChild(overlay);
     }
 
