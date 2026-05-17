@@ -431,7 +431,7 @@ body { padding: 16px 14px 32px; }
     <div class="card-label" id="playerCardLabel" style="margin-bottom:6px;">Ninja</div>
     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
       <button type="button" class="btn btn-ghost" onclick="openSortMenu('characterGrid', this)" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
-      <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
+      <button type="button" class="btn btn-ghost unlock-btn" onclick="toggleUnlock('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Déverrouiller personnages</button>
       <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
       <button type="button" class="btn btn-ghost" id="viewTogglePlayer" onclick="toggleViewMode('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Vue carousel</button>
       <button type="button" class="btn btn-ghost" id="statsToggleBtn" onclick="toggleStats()" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">👁 Stats</button>
@@ -500,7 +500,7 @@ body { padding: 16px 14px 32px; }
     <div class="card-label" id="opponentCardLabel" style="margin-bottom:6px;">Adversaire</div>
     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
       <button type="button" class="btn btn-ghost" onclick="openSortMenu('opponentGrid', this)" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
-      <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
+      <button type="button" class="btn btn-ghost unlock-btn" onclick="toggleUnlock('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Déverrouiller personnages</button>
       <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
       <button type="button" class="btn btn-ghost" id="viewToggleOpponent" onclick="toggleViewMode('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Vue carousel</button>
       <button type="button" class="btn btn-ghost" id="statsToggleBtn2" onclick="toggleStats()" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">👁 Stats</button>
@@ -578,7 +578,7 @@ body { padding: 16px 14px 32px; }
 <div id="unlockModal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
   <div class="card" style="max-width:340px; width:100%; padding:24px; text-align:center;">
     <div style="font-size:1.5rem; margin-bottom:12px;">🔓</div>
-    <div style="font-weight:700; font-size:1rem; margin-bottom:8px;">Autoriser sélection des personnages indisponibles ?</div>
+    <div style="font-weight:700; font-size:1rem; margin-bottom:8px;">Déverrouiller tous les personnages ?</div>
     <div style="font-size:0.82rem; color:var(--muted); margin-bottom:20px;">Les restrictions de disponibilité seront ignorées pour cette sélection.</div>
     <div style="display:flex; gap:10px;">
       <button type="button" class="btn btn-ghost" onclick="closeUnlockModal()" style="flex:1; margin-bottom:0;">Annuler</button>
@@ -594,7 +594,6 @@ let selectedOpponent = null;
 let unlockPlayer = false;
 let unlockOpponent = false;
 let showStats = false;
-let unlockContext = null; // 'player' or 'opponent'
 let playerSwapped = false;
 let opponentSwapped = false;
 
@@ -1330,6 +1329,15 @@ function applySort(key) {
   }
 }
 
+function updateUnlockButtons() {
+  const btn1 = document.querySelector('#step1Screen .unlock-btn');
+  const btn2 = document.querySelector('#step2Screen .unlock-btn');
+  if (btn1) { btn1.textContent = unlockPlayer ? '🔒 Verrouiller personnages' : '🔓 Déverrouiller personnages'; btn1.disabled = false; }
+  if (btn2) { btn2.textContent = unlockOpponent ? '🔒 Verrouiller personnages' : '🔓 Déverrouiller personnages'; btn2.disabled = false; }
+}
+
+let unlockContext = null;
+
 function openUnlockModal(context) {
   unlockContext = context;
   document.getElementById('unlockModal').classList.remove('hidden');
@@ -1339,40 +1347,58 @@ function closeUnlockModal() {
   document.getElementById('unlockModal').classList.add('hidden');
 }
 
-function updateUnlockButtons() {
-  const btn1 = document.querySelector('#step1Screen .unlock-btn');
-  const btn2 = document.querySelector('#step2Screen .unlock-btn');
-  if (btn1) { btn1.disabled = unlockPlayer; }
-  if (btn2) { btn2.disabled = unlockOpponent; }
-}
-
 function confirmUnlock() {
   closeUnlockModal();
+  doUnlock(unlockContext);
+}
+
+function toggleUnlock(context) {
+  const isUnlocked = context === 'player' ? unlockPlayer : unlockOpponent;
+  if (isUnlocked) {
+    doLock(context);
+  } else {
+    openUnlockModal(context);
+  }
+}
+
+function doUnlock(context) {
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
-
-  if (unlockContext === 'player') {
+  if (context === 'player') {
     unlockPlayer = true;
     selectedCharacter = null;
     const nextBtn = document.getElementById('nextBtn');
     nextBtn.disabled = true; nextBtn.style.opacity = '';
-    if (viewModes.player === 'carousel') {
-      buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, true);
-    } else {
-      buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, true);
-      document.getElementById('characterListInfo').style.display = 'none';
-    }
+    buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, true);
+    document.getElementById('characterListInfo').style.display = 'none';
   } else {
     unlockOpponent = true;
     selectedOpponent = null;
     const startBtn = document.getElementById('startBtn');
     startBtn.disabled = true; startBtn.style.opacity = '';
-    if (viewModes.opponent === 'carousel') {
-      buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, true);
-    } else {
-      buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, true);
-      document.getElementById('opponentListInfo').style.display = 'none';
-    }
+    buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, true);
+    document.getElementById('opponentListInfo').style.display = 'none';
+  }
+  updateUnlockButtons();
+}
+
+function doLock(context) {
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+  if (context === 'player') {
+    unlockPlayer = false;
+    selectedCharacter = null;
+    const nextBtn = document.getElementById('nextBtn');
+    nextBtn.disabled = true; nextBtn.style.opacity = '';
+    buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, false);
+    document.getElementById('characterListInfo').style.display = 'none';
+  } else {
+    unlockOpponent = false;
+    selectedOpponent = null;
+    const startBtn = document.getElementById('startBtn');
+    startBtn.disabled = true; startBtn.style.opacity = '';
+    buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, false);
+    document.getElementById('opponentListInfo').style.display = 'none';
   }
   updateUnlockButtons();
 }
