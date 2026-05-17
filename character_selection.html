@@ -140,11 +140,12 @@ body { padding: 16px 14px 32px; }
   </div>
 
   <div style="margin-bottom:12px;">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <div class="card-label" id="playerCardLabel" style="margin-bottom:0;">Ninja</div>
-      <button type="button" class="btn btn-ghost" onclick="openSortMenu('characterGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+    <div class="card-label" id="playerCardLabel" style="margin-bottom:6px;">Ninja</div>
+    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost" onclick="openSortMenu('characterGrid', this)" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+      <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
+      <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
     </div>
-    <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
   </div>
 
   <div id="noCharMsg" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
@@ -189,11 +190,12 @@ body { padding: 16px 14px 32px; }
   </div>
 
   <div style="margin-bottom:12px;">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <div class="card-label" id="opponentCardLabel" style="margin-bottom:0;">Adversaire</div>
-      <button type="button" class="btn btn-ghost" onclick="openSortMenu('opponentGrid', this)" style="margin:0; vertical-align:middle; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+    <div class="card-label" id="opponentCardLabel" style="margin-bottom:6px;">Adversaire</div>
+    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost" onclick="openSortMenu('opponentGrid', this)" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
+      <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
+      <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
     </div>
-    <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:6px 0 0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
   </div>
 
   <div id="noOpponentMsg" style="display:none; text-align:center; color:var(--muted); font-size:0.85rem; padding: 20px 16px;">
@@ -266,6 +268,58 @@ let selectedOpponent = null;
 let unlockPlayer = false;
 let unlockOpponent = false;
 let unlockContext = null; // 'player' or 'opponent'
+let playerSwapped = false;
+let opponentSwapped = false;
+
+function getActiveRoster(context) {
+  const gameData = getGameData();
+  const myTeam = gameData.team.toLowerCase();
+  const opponentTeam = myTeam === 'alliance' ? 'akatsuki' : 'alliance';
+  if (context === 'player') {
+    const team = playerSwapped ? opponentTeam : myTeam;
+    return roster.filter(c => c.team.toLowerCase() === team);
+  } else {
+    const team = opponentSwapped ? myTeam : opponentTeam;
+    return roster.filter(c => c.team.toLowerCase() === team);
+  }
+}
+
+function swapRoster(context) {
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+  if (context === 'player') {
+    playerSwapped = !playerSwapped;
+    unlockPlayer = false;
+    selectedCharacter = null;
+    const nextBtn = document.getElementById('nextBtn');
+    nextBtn.disabled = true; nextBtn.style.opacity = '';
+    buildRosterGrid('characterGrid', getActiveRoster('player'), currentTurn, onCharacterSelect, false);
+  } else {
+    opponentSwapped = !opponentSwapped;
+    unlockOpponent = false;
+    selectedOpponent = null;
+    const startBtn = document.getElementById('startBtn');
+    startBtn.disabled = true; startBtn.style.opacity = '';
+    buildRosterGrid('opponentGrid', getActiveRoster('opponent'), currentTurn, onOpponentSelect, false);
+  }
+  updateUnlockButtons();
+  updateSwapButtons();
+}
+
+function updateSwapButtons() {
+  const btn1 = document.querySelector('#step1Screen .swap-btn');
+  const btn2 = document.querySelector('#step2Screen .swap-btn');
+  if (btn1) {
+    btn1.textContent = '⇄ Changer de camp';
+    btn1.style.color = playerSwapped ? 'var(--orange)' : '';
+    btn1.style.borderColor = playerSwapped ? 'var(--orange)' : '';
+  }
+  if (btn2) {
+    btn2.textContent = '⇄ Changer de camp';
+    btn2.style.color = opponentSwapped ? 'var(--orange)' : '';
+    btn2.style.borderColor = opponentSwapped ? 'var(--orange)' : '';
+  }
+}
 
 function isAvailable(c, currentTurn) {
   if (c.available_from_turn > currentTurn) return false;
@@ -359,8 +413,9 @@ function goToConfirm() {
 }
 
 function goBackToStep2() {
-  // Reset opponent unlock when going back
+  // Reset opponent unlock and swap when going back
   unlockOpponent = false;
+  opponentSwapped = false;
   selectedOpponent = null;
   const startBtn = document.getElementById('startBtn');
   startBtn.disabled = true; startBtn.style.opacity = '';
@@ -371,6 +426,7 @@ function goBackToStep2() {
   const opponentRoster = roster.filter(c => c.team.toLowerCase() === opponentTeam);
   buildRosterGrid('opponentGrid', opponentRoster, currentTurn, onOpponentSelect, false);
   updateUnlockButtons();
+  updateSwapButtons();
   document.getElementById('step3Screen').classList.add('hidden');
   document.getElementById('step2Screen').classList.remove('hidden');
   window.scrollTo(0, 0);
@@ -418,6 +474,7 @@ function initializePage() {
     buildRosterGrid('opponentGrid', opponentRoster, currentTurn, onOpponentSelect, unlockOpponent);
   }
   updateUnlockButtons();
+  updateSwapButtons();
 }
 
 function goToStep2() {
@@ -473,8 +530,7 @@ function applySort(key) {
     selectedCharacter = null;
     const nextBtn = document.getElementById('nextBtn');
     nextBtn.disabled = true; nextBtn.style.opacity = '';
-    const myRoster = roster.filter(c => c.team.toLowerCase() === myTeam);
-    buildRosterGrid('characterGrid', myRoster, currentTurn, onCharacterSelect, unlockPlayer);
+    buildRosterGrid('characterGrid', getActiveRoster('player'), currentTurn, onCharacterSelect, unlockPlayer);
     // Re-select previously selected card if any
     if (prevSelected) {
       const card = document.querySelector(`#characterGrid [data-name="${CSS.escape(prevSelected)}"]`);
@@ -488,8 +544,7 @@ function applySort(key) {
     selectedOpponent = null;
     const startBtn = document.getElementById('startBtn');
     startBtn.disabled = true; startBtn.style.opacity = '';
-    const opponentRoster = roster.filter(c => c.team.toLowerCase() === opponentTeam);
-    buildRosterGrid('opponentGrid', opponentRoster, currentTurn, onOpponentSelect, unlockOpponent);
+    buildRosterGrid('opponentGrid', getActiveRoster('opponent'), currentTurn, onOpponentSelect, unlockOpponent);
     if (prevSelected) {
       const card = document.querySelector(`#opponentGrid [data-name="${CSS.escape(prevSelected)}"]`);
       if (card && !card.classList.contains('unavailable')) {
@@ -550,8 +605,9 @@ function unlockGridInPlace(gridId, onSelect) {
 
 
 function goBackToStep1() {
-  // Reset player unlock when going back
+  // Reset player unlock and swap when going back
   unlockPlayer = false;
+  playerSwapped = false;
   selectedCharacter = null;
   const nextBtn = document.getElementById('nextBtn');
   nextBtn.disabled = true; nextBtn.style.opacity = '';
@@ -561,6 +617,7 @@ function goBackToStep1() {
   const myRoster = roster.filter(c => c.team.toLowerCase() === myTeam);
   buildRosterGrid('characterGrid', myRoster, currentTurn, onCharacterSelect, false);
   updateUnlockButtons();
+  updateSwapButtons();
   document.getElementById('step2Screen').classList.add('hidden');
   document.getElementById('step1Screen').classList.remove('hidden');
   window.scrollTo(0, 0);
