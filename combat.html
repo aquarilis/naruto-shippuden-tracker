@@ -68,6 +68,8 @@ body { padding: 16px 14px 32px; }
   overflow: hidden;
   display: flex;
 }
+.bar-track-hp     { border: 1.5px solid var(--hp); }
+.bar-track-chakra { border: 1.5px solid var(--chakra); }
 .bar-fill {
   height: 100%;
   border-radius: 10px 0 0 10px;
@@ -353,7 +355,7 @@ body { padding: 16px 14px 32px; }
             <span class="stat-max"> / <span id="dispMaxHP">–</span></span>
           </div>
         </div>
-        <div class="bar-track"><div class="bar-fill bar-hp" id="barHP"></div><div class="bar-over bar-hp-over" id="barHPOver" style="width:0;"></div></div>
+        <div class="bar-track bar-track-hp"><div class="bar-fill bar-hp" id="barHP"></div><div class="bar-over bar-hp-over" id="barHPOver" style="width:0;"></div></div>
       </div>
       <div class="stat">
         <div class="stat-head">
@@ -363,7 +365,7 @@ body { padding: 16px 14px 32px; }
             <span class="stat-max"> / <span id="dispMaxChakra">–</span></span>
           </div>
         </div>
-        <div class="bar-track"><div class="bar-fill bar-chakra" id="barChakra"></div><div class="bar-over bar-chakra-over" id="barChakraOver" style="width:0;"></div></div>
+        <div class="bar-track bar-track-chakra"><div class="bar-fill bar-chakra" id="barChakra"></div><div class="bar-over bar-chakra-over" id="barChakraOver" style="width:0;"></div></div>
       </div>
     </div>
     <div id="playerImageWrap" style="display:none; align-self:stretch;">
