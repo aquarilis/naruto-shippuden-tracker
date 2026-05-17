@@ -279,6 +279,18 @@ body { padding: 16px 14px 32px; }
 
 .modal-footer .btn { margin: 0; }
 
+/* ── Image zoom modal ── */
+#imageZoomModal {
+  position: fixed; inset: 0;
+  z-index: 2000;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+#imageZoomModal.hidden { display: none; }
+
 /* ── End screen ── */
 #endScreen { text-align: center; padding-top: 20px; }
 .end-icon  { font-size: 4rem; margin-bottom: 10px; }
@@ -718,11 +730,11 @@ function endCombat(reason) {
   hide('roundOverlay');
 
   if (reason === 'ko') {
-    document.getElementById('defeatModal').classList.remove('hidden');
+    show('defeatModal');
   } else {
     // Show record screen to choose victory or draw
     show('recordScreen');
-    document.getElementById('teamLogoRecord').src = document.getElementById('teamLogo').src;
+    document.getElementById('teamLogoRecord').src = getTeamLogoPath(getGameData().team);
   }
 }
 
@@ -742,27 +754,20 @@ function step(id, delta) {
   }
 }
 
-function toggleHeal() {} // kept for safety, no longer used in UI
-
 function openRenforcementModal() {
   document.getElementById('renforcementHeal').value = 0;
   document.getElementById('renforcementChakra').value = 0;
-  document.getElementById('renforcementModal').classList.remove('hidden');
+  show('renforcementModal');
 }
 
-function closeRenforcementModal() {
-  document.getElementById('renforcementModal').classList.add('hidden');
-}
+function closeRenforcementModal() { hide('renforcementModal'); }
 
 function openImageZoom(src) {
-  const modal = document.getElementById('imageZoomModal');
   document.getElementById('imageZoomImg').src = src;
-  modal.style.display = 'flex';
+  show('imageZoomModal');
 }
 
-function closeImageZoom() {
-  document.getElementById('imageZoomModal').style.display = 'none';
-}
+function closeImageZoom() { hide('imageZoomModal'); }
 
 function confirmRenfort() {
   const hpHeal = Math.max(0, parseInt(document.getElementById('renforcementHeal').value) || 0);
@@ -784,45 +789,30 @@ function confirmRenfort() {
   renderCombat();
 }
 
-function openEndCombatModal() {
-  document.getElementById('endCombatModal').classList.remove('hidden');
-}
-
-function closeEndCombatModal() {
-  document.getElementById('endCombatModal').classList.add('hidden');
-}
+function openEndCombatModal() { show('endCombatModal'); }
+function closeEndCombatModal() { hide('endCombatModal'); }
 
 function confirmEndCombat() {
   closeEndCombatModal();
   openXpModal();
 }
 
-function openActionModal() {
-  document.getElementById('actionModal').classList.remove('hidden');
-}
-
-function closeActionModal() {
-  document.getElementById('actionModal').classList.add('hidden');
-}
+function openActionModal() { show('actionModal'); }
+function closeActionModal() { hide('actionModal'); }
 
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
-function stepXp(id, delta) {
-  const el = document.getElementById(id);
-  el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
-}
+function stepXp(id, delta) { step(id, delta); }
 
 function openXpModal() {
   document.getElementById('xpCharacter').value = G.opponentXp || 0;
   document.getElementById('xpMission').value = 0;
   document.getElementById('xpSecondary').value = 0;
-  document.getElementById('xpModal').classList.remove('hidden');
+  show('xpModal');
 }
 
-function closeXpModal() {
-  document.getElementById('xpModal').classList.add('hidden');
-}
+function closeXpModal() { hide('xpModal'); }
 
 function confirmXpAndSave() {
   const xpCharacter = Math.max(0, parseInt(document.getElementById('xpCharacter').value) || 0);
@@ -878,13 +868,8 @@ function initFromURL() {
   }
 
   // Set team logo
-  const teamLogoPath = team === 'shinobi' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
   const teamLogoElem = document.getElementById('teamLogo');
-  if (teamLogoElem) teamLogoElem.src = teamLogoPath;
-
-  // Set combat title
-  const titleElem = document.getElementById('combatTitle');
-  if (titleElem) titleElem.textContent = opponent ? `${name} vs. ${opponent}` : name;
+  if (teamLogoElem) teamLogoElem.src = getTeamLogoPath(team);
 
   startCombatWithParams(name, hp, chakra, opponent, opponentXp, playerImage, opponentImage);
 }
@@ -954,7 +939,7 @@ window.addEventListener('load', initFromURL);
         </div>
       </div>
 
-      <div id="healSection" class="hidden" style="display:none !important;"></div>
+      <div id="healSection" class="hidden"></div>
     </div>
 
     <div class="modal-footer">
@@ -996,7 +981,7 @@ window.addEventListener('load', initFromURL);
 </div>
 
 <!-- ══════════════ IMAGE ZOOM MODAL ══════════════ -->
-<div id="imageZoomModal" onclick="closeImageZoom()" style="display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; cursor:zoom-out;">
+<div id="imageZoomModal" class="hidden" onclick="closeImageZoom()">
   <img id="imageZoomImg" src="" alt="" style="height:500px; max-height:90vh; width:auto; max-width:92vw; border-radius:12px; box-shadow:0 8px 40px rgba(0,0,0,0.6); pointer-events:none;">
 </div>
 
