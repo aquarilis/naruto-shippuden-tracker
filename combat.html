@@ -327,7 +327,7 @@ body { padding: 16px 14px 32px; }
     </div>
     <div id="playerImageWrap" style="display:none; align-self:stretch;">
       <div class="card" style="margin-bottom:0; padding:8px; height:100%; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">
-        <img id="playerImage" src="" alt="" style="height:200px; width:auto; border-radius:8px; display:block;">
+        <img id="playerImage" src="" alt="" onclick="openImageZoom(this.src)" style="height:200px; width:auto; border-radius:8px; display:block; cursor:zoom-in;">
       </div>
     </div>
   </div>
@@ -625,6 +625,16 @@ function closeRenforcementModal() {
   document.getElementById('renforcementModal').classList.add('hidden');
 }
 
+function openImageZoom(src) {
+  const modal = document.getElementById('imageZoomModal');
+  document.getElementById('imageZoomImg').src = src;
+  modal.style.display = 'flex';
+}
+
+function closeImageZoom() {
+  document.getElementById('imageZoomModal').style.display = 'none';
+}
+
 function confirmRenfort() {
   const hpHeal = Math.max(0, parseInt(document.getElementById('renforcementHeal').value) || 0);
   const pcHeal = Math.max(0, parseInt(document.getElementById('renforcementChakra').value) || 0);
@@ -854,6 +864,11 @@ window.addEventListener('load', initFromURL);
       <button type="button" class="btn btn-renfort" onclick="confirmRenfort()">💚 Appliquer le renfort</button>
     </div>
   </div>
+</div>
+
+<!-- ══════════════ IMAGE ZOOM MODAL ══════════════ -->
+<div id="imageZoomModal" onclick="closeImageZoom()" style="display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; cursor:zoom-out;">
+  <img id="imageZoomImg" src="" alt="" style="height:500px; max-height:90vh; width:auto; max-width:92vw; border-radius:12px; box-shadow:0 8px 40px rgba(0,0,0,0.6); pointer-events:none;">
 </div>
 
 <!-- ══════════════ XP MODAL ══════════════ -->
