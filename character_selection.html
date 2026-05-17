@@ -550,7 +550,6 @@ body { padding: 16px 14px 32px; }
         <img id="confirmPlayerImg" src="" alt="" style="display:block; width:100%; height:auto; max-height:400px; object-fit:contain;">
       </div>
       <div style="display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; margin-top:8px;">
-        <div id="confirmPlayerName" style="font-weight:700; font-size:0.95rem;"></div>
         <div id="confirmPlayerBadges" style="display:flex; gap:4px;"></div>
       </div>
       <div id="confirmPlayerStats" style="font-size:0.78rem; color:var(--muted); margin-top:2px;"></div>
@@ -562,7 +561,6 @@ body { padding: 16px 14px 32px; }
         <img id="confirmOpponentImg" src="" alt="" style="display:block; width:100%; height:auto; max-height:400px; object-fit:contain;">
       </div>
       <div style="display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; margin-top:8px;">
-        <div id="confirmOpponentName" style="font-weight:700; font-size:0.95rem;"></div>
         <div id="confirmOpponentBadges" style="display:flex; gap:4px;"></div>
       </div>
       <div id="confirmOpponentStats" style="font-size:0.78rem; color:var(--muted); margin-top:2px;"></div>
@@ -1004,7 +1002,7 @@ function formatStats(c) {
   const extra = c.extra_mp || 0;
   const total = mp + extra;
   const chakraStr = extra > 0 ? `${total} (${mp}+${extra}) PC` : `${total} PC`;
-  return `💙 ${chakraStr} · ❤️ ${c.hp} PV · ⭐ ${c.xp ?? 0} XP`;
+  return `💙 ${chakraStr} ❤️ ${c.hp} PV ⭐ ${c.xp ?? 0} XP`;
 }
 
 function isDefeated(c) {
@@ -1208,13 +1206,11 @@ function goToConfirm() {
 
   document.getElementById('confirmPlayerImg').src = selectedCharacter.roster_image
     ? `img/roster/${selectedCharacter.roster_image}` : '';
-  document.getElementById('confirmPlayerName').textContent = selectedCharacter.display_name;
   document.getElementById('confirmPlayerStats').textContent = formatStats(selectedCharacter);
   renderBadges('confirmPlayerBadges', makeBadges(selectedCharacter, playerSwapped, unlockPlayer, currentTurn));
 
   document.getElementById('confirmOpponentImg').src = selectedOpponent.roster_image
     ? `img/roster/${selectedOpponent.roster_image}` : '';
-  document.getElementById('confirmOpponentName').textContent = selectedOpponent.display_name;
   document.getElementById('confirmOpponentStats').textContent = formatStats(selectedOpponent);
   renderBadges('confirmOpponentBadges', makeBadges(selectedOpponent, opponentSwapped, unlockOpponent, currentTurn));
 
