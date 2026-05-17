@@ -318,6 +318,29 @@ body { padding: 16px 14px 32px; }
 .fx-blink-slow   { animation: fx-blink 1.4s  ease-in-out infinite; }
 .fx-blink-medium { animation: fx-blink 0.7s  ease-in-out infinite; }
 .fx-blink-fast   { animation: fx-blink 0.32s ease-in-out infinite; }
+
+/* ── Character image effects ── */
+@keyframes img-damage {
+  0%   { filter: brightness(1)   saturate(1); }
+  8%   { filter: brightness(2.5) saturate(0.1) sepia(1) hue-rotate(300deg); }
+  30%  { filter: brightness(1.5) saturate(2)   sepia(0.6) hue-rotate(320deg); }
+  100% { filter: brightness(1)   saturate(1); }
+}
+@keyframes img-heal {
+  0%   { filter: brightness(1)   saturate(1); }
+  10%  { filter: brightness(2)   saturate(4)   sepia(0.5) hue-rotate(80deg); }
+  35%  { filter: brightness(1.3) saturate(2.5) hue-rotate(60deg); }
+  100% { filter: brightness(1)   saturate(1); }
+}
+@keyframes img-chakra {
+  0%   { filter: brightness(1)   saturate(1); }
+  10%  { filter: brightness(2.2) saturate(5)   sepia(1) hue-rotate(170deg); }
+  35%  { filter: brightness(1.4) saturate(3)   hue-rotate(185deg); }
+  100% { filter: brightness(1)   saturate(1); }
+}
+.img-fx-damage  { animation: img-damage  0.6s  ease-out; }
+.img-fx-heal    { animation: img-heal    0.75s ease-out; }
+.img-fx-chakra  { animation: img-chakra  0.6s  ease-out; }
 </style>
 </head>
 <body>
@@ -488,6 +511,15 @@ function flashBar(barId, fxClass) {
   track.addEventListener('animationend', () => track.classList.remove(fxClass), { once: true });
 }
 
+function flashImage(fxClass) {
+  const img = document.getElementById('playerImage');
+  if (!img || !G.playerImage) return;
+  img.classList.remove('img-fx-damage', 'img-fx-heal', 'img-fx-chakra');
+  void img.offsetWidth; // reflow to restart animation
+  img.classList.add(fxClass);
+  img.addEventListener('animationend', () => img.classList.remove(fxClass), { once: true });
+}
+
 function applyBlinkClass(barId, ratio) {
   const bar = document.getElementById(barId);
   bar.classList.remove('fx-blink-slow', 'fx-blink-medium', 'fx-blink-fast');
@@ -541,6 +573,16 @@ function renderCombat() {
     flashBar('barChakra', G.chakra < _prevChakra ? 'fx-damage' : 'fx-heal');
   }
   applyBlinkClass('barChakra', G.chakra / G.maxChakra);
+
+  // Image flash — damage > chakra cost > heal (priority order)
+  if (_prevHP !== null) {
+    const damaged      = G.hp      < _prevHP;
+    const healed       = G.hp      > _prevHP || G.chakra > _prevChakra;
+    const chakraSpent  = G.chakra  < _prevChakra && G.hp === _prevHP;
+    if      (damaged)     flashImage('img-fx-damage');
+    else if (chakraSpent) flashImage('img-fx-chakra');
+    else if (healed)      flashImage('img-fx-heal');
+  }
 
   _prevHP = G.hp;
   _prevChakra = G.chakra;
