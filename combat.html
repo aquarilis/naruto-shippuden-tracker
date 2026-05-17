@@ -483,7 +483,7 @@ function renderPips(id, total, current) {
 
 function renderLog() {
   const el = document.getElementById('log');
-  if (G.log.length === 0) return;
+  if (G.log.length === 0) { el.innerHTML = ''; return; }
   el.innerHTML = [...G.log].reverse()
     .map(e => `<div class="log-entry">${e}</div>`)
     .join('');
