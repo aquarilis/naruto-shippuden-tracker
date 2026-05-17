@@ -346,6 +346,7 @@ body { padding: 16px 14px 32px; }
     <div class="log" id="log"><div class="log-entry" style="color:var(--muted); font-style:italic;">Le combat commence…</div></div>
   </div>
 
+  <button id="undoBtn" type="button" class="btn btn-ghost" onclick="undoLastAction()" style="margin-top:4px;" disabled>↩ Annuler dernière action</button>
   <button type="button" class="btn btn-ghost" onclick="window.location.href='game_tracker.html'" style="margin-top:4px;">✕ Annuler combat</button>
 </div>
 
@@ -416,7 +417,8 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, pla
     opponentImage: opponentImage || null,
     round: 1,
     action: 1,
-    log: []
+    log: [],
+    history: []
   };
 
   document.getElementById('log').innerHTML = '';
@@ -460,6 +462,10 @@ function renderCombat() {
   renderPips('roundPips', 3, G.round);
   renderPips('actionPips', 3, G.action);
 
+  // Undo button
+  const undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) undoBtn.disabled = G.history.length === 0;
+
   // Reset inputs
   resetInputs();
   renderLog();
@@ -489,6 +495,22 @@ function resetInputs() {
   document.getElementById('chakraWarn').style.display = 'none';
 }
 
+// ── Undo ─────────────────────────────────────────────────
+function pushSnapshot() {
+  G.history.push({ hp: G.hp, chakra: G.chakra, round: G.round, action: G.action, log: [...G.log] });
+}
+
+function undoLastAction() {
+  if (G.history.length === 0) return;
+  const snap = G.history.pop();
+  G.hp     = snap.hp;
+  G.chakra = snap.chakra;
+  G.round  = snap.round;
+  G.action = snap.action;
+  G.log    = snap.log;
+  renderCombat();
+}
+
 // ── Action logic ─────────────────────────────────────────
 function confirmAction() {
   // Read values BEFORE closing the modal
@@ -496,6 +518,7 @@ function confirmAction() {
   const dmg         = Math.max(0, parseInt(document.getElementById('inputDmg').value) || 0);
 
   closeActionModal();
+  pushSnapshot();
 
   // Warn but don't block — the game says you can't play the technique
   // but we still apply it so the player tracks the outcome
@@ -608,6 +631,8 @@ function confirmRenfort() {
   closeRenforcementModal();
 
   if (hpHeal === 0 && pcHeal === 0) return;
+
+  pushSnapshot();
 
   G.hp     += hpHeal;
   G.chakra += pcHeal;
