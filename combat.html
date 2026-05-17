@@ -20,6 +20,13 @@ body { padding: 16px 14px 32px; }
   font-size: 0.9rem;
 }
 
+.btn-renfort {
+  background: rgba(67, 160, 71, 0.08);
+  border: 1.5px dashed var(--heal);
+  color: var(--heal);
+  font-size: 0.9rem;
+}
+
 .btn-ghost { padding: 11px; }
 
 /* ── Stat bars ── */
@@ -328,7 +335,8 @@ body { padding: 16px 14px 32px; }
   <!-- Turn inputs -->
   <!-- Action Buttons -->
   <div style="display:flex; gap:10px; margin-bottom:14px;">
-    <button type="button" class="btn btn-orange" onclick="openActionModal()" style="flex:1;">Saisir action</button>
+    <button type="button" class="btn btn-orange" onclick="openActionModal()" style="flex:1;">Action</button>
+    <button type="button" class="btn btn-renfort" onclick="openRenforcementModal()" style="flex:1;">💚 Renfort</button>
     <button type="button" class="btn btn-end" onclick="openEndCombatModal()" style="flex:1;">Terminer combat</button>
   </div>
 
@@ -478,12 +486,7 @@ function renderLog() {
 function resetInputs() {
   document.getElementById('inputChakra').value = 0;
   document.getElementById('inputDmg').value = 0;
-  document.getElementById('inputHeal').value = 0;
-  document.getElementById('inputRenforcementChakra').value = 0;
   document.getElementById('chakraWarn').style.display = 'none';
-  // Reset renfort section
-  document.getElementById('healSection').classList.add('hidden');
-  document.getElementById('healToggle').textContent = '+ Utiliser un renfort';
 }
 
 // ── Action logic ─────────────────────────────────────────
@@ -491,8 +494,6 @@ function confirmAction() {
   // Read values BEFORE closing the modal
   const chakraSpent = Math.max(0, parseInt(document.getElementById('inputChakra').value) || 0);
   const dmg         = Math.max(0, parseInt(document.getElementById('inputDmg').value) || 0);
-  const heal        = Math.max(0, parseInt(document.getElementById('inputHeal').value) || 0);
-  const chakraHeal  = Math.max(0, parseInt(document.getElementById('inputRenforcementChakra').value) || 0);
 
   closeActionModal();
 
@@ -503,17 +504,13 @@ function confirmAction() {
     warn.style.display = 'block';
   }
 
-  G.chakra = Math.max(0, G.chakra - chakraSpent + chakraHeal);
-
-  const hpAfterDmg = Math.max(0, G.hp - dmg);
-  G.hp = hpAfterDmg + heal;
+  G.chakra = Math.max(0, G.chakra - chakraSpent);
+  G.hp = Math.max(0, G.hp - dmg);
 
   // Build log line
   const parts = [];
   if (chakraSpent > 0) parts.push(`<span class="c-chakra">−${chakraSpent} PC</span>`);
   if (dmg > 0)         parts.push(`<span class="c-hp">−${dmg} PV</span>`);
-  if (heal > 0)        parts.push(`<span class="c-heal">+${heal} PV (renfort)</span>`);
-  if (chakraHeal > 0)  parts.push(`<span class="c-chakra">+${chakraHeal} PC (renfort)</span>`);
   const effect = parts.length ? parts.join(', ') : 'aucun effet';
   G.log.push(`<b>Round ${G.round} - Action ${G.action}</b> ${effect} → ❤️${G.hp} 💙${G.chakra}`);
 
@@ -593,11 +590,34 @@ function step(id, delta) {
   }
 }
 
-function toggleHeal() {
-  const s = document.getElementById('healSection');
-  const t = document.getElementById('healToggle');
-  const hidden = s.classList.toggle('hidden');
-  t.textContent = hidden ? '+ Utiliser un renfort' : '− Annuler le renfort';
+function toggleHeal() {} // kept for safety, no longer used in UI
+
+function openRenforcementModal() {
+  document.getElementById('renforcementHeal').value = 0;
+  document.getElementById('renforcementChakra').value = 0;
+  document.getElementById('renforcementModal').classList.remove('hidden');
+}
+
+function closeRenforcementModal() {
+  document.getElementById('renforcementModal').classList.add('hidden');
+}
+
+function confirmRenfort() {
+  const hpHeal = Math.max(0, parseInt(document.getElementById('renforcementHeal').value) || 0);
+  const pcHeal = Math.max(0, parseInt(document.getElementById('renforcementChakra').value) || 0);
+  closeRenforcementModal();
+
+  if (hpHeal === 0 && pcHeal === 0) return;
+
+  G.hp     += hpHeal;
+  G.chakra += pcHeal;
+
+  const parts = [];
+  if (hpHeal > 0) parts.push(`<span class="c-heal">+${hpHeal} PV</span>`);
+  if (pcHeal > 0) parts.push(`<span class="c-chakra">+${pcHeal} PC</span>`);
+  G.log.push(`<b>💚 Renfort</b> (Round ${G.round}) ${parts.join(', ')} → ❤️${G.hp} 💙${G.chakra}`);
+
+  renderCombat();
 }
 
 function openEndCombatModal() {
@@ -747,8 +767,7 @@ window.addEventListener('load', initFromURL);
 <div id="actionModal" class="hidden action-modal-overlay">
   <div class="action-modal">
     <div class="modal-header">
-      <h2>Saisir l'action</h2>
-      <div style="font-size: 0.75rem; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px;">Action <span id="actionLabel">1</span> / 3</div>
+      <h2>Action <span id="actionLabel">1</span> / 3</h2>
     </div>
 
     <div class="modal-content">
@@ -771,26 +790,7 @@ window.addEventListener('load', initFromURL);
         </div>
       </div>
 
-      <div id="healSection" class="hidden">
-        <div class="stepper-wrap heal-wrap">
-          <label><span class="icon">💚</span> PV récupérés (renfort)</label>
-          <div class="stepper">
-            <button onclick="step('inputHeal', -1)">−</button>
-            <input type="number" id="inputHeal" value="0" min="0" inputmode="numeric">
-            <button onclick="step('inputHeal', 1)">+</button>
-          </div>
-        </div>
-        <div class="stepper-wrap chakra-wrap">
-          <label><span class="icon">💙</span> Chakra récupéré (renfort)</label>
-          <div class="stepper">
-            <button onclick="step('inputRenforcementChakra', -1)">−</button>
-            <input type="number" id="inputRenforcementChakra" value="0" min="0" inputmode="numeric">
-            <button onclick="step('inputRenforcementChakra', 1)">+</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="heal-toggle" id="healToggle" onclick="toggleHeal()">+ Utiliser un renfort</div>
+      <div id="healSection" class="hidden" style="display:none !important;"></div>
     </div>
 
     <div class="modal-footer">
@@ -799,6 +799,38 @@ window.addEventListener('load', initFromURL);
     </div>
   </div>
 </div>
+<!-- ══════════════ RENFORT MODAL ══════════════ -->
+<div id="renforcementModal" class="hidden action-modal-overlay">
+  <div class="action-modal">
+    <div class="modal-header">
+      <h2>💚 Renfort</h2>
+      <div style="font-size: 0.75rem; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px;">Ne compte pas comme une action</div>
+    </div>
+    <div class="modal-content">
+      <div class="stepper-wrap heal-wrap">
+        <label><span class="icon">❤️</span> PV récupérés</label>
+        <div class="stepper">
+          <button onclick="step('renforcementHeal', -1)">−</button>
+          <input type="number" id="renforcementHeal" value="0" min="0" inputmode="numeric">
+          <button onclick="step('renforcementHeal', 1)">+</button>
+        </div>
+      </div>
+      <div class="stepper-wrap chakra-wrap">
+        <label><span class="icon">💙</span> PC récupérés</label>
+        <div class="stepper">
+          <button onclick="step('renforcementChakra', -1)">−</button>
+          <input type="number" id="renforcementChakra" value="0" min="0" inputmode="numeric">
+          <button onclick="step('renforcementChakra', 1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeRenforcementModal()">Annuler</button>
+      <button type="button" class="btn btn-renfort" onclick="confirmRenfort()">💚 Appliquer le renfort</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ XP MODAL ══════════════ -->
 <div id="xpModal" class="hidden action-modal-overlay">
   <div class="action-modal">
