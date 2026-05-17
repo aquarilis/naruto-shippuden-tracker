@@ -275,6 +275,31 @@ body { padding: 16px 14px 32px; }
   font-size: 0.85rem; color: var(--muted);
 }
 .end-stat strong { display: block; font-size: 1.5rem; font-weight: 800; color: var(--text); }
+
+/* ── Bar visual effects ── */
+@keyframes fx-damage {
+  0%   { filter: brightness(1); }
+  12%  { filter: brightness(2.8) saturate(0.2); }
+  40%  { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+@keyframes fx-heal {
+  0%   { filter: brightness(1) hue-rotate(0deg); }
+  20%  { filter: brightness(1.9) hue-rotate(80deg); }
+  60%  { filter: brightness(1.3) hue-rotate(40deg); }
+  100% { filter: brightness(1) hue-rotate(0deg); }
+}
+/* Flash applied to bar-track (parent), blink on bar-fill — no animation conflict */
+.fx-damage { animation: fx-damage 0.55s ease-out; }
+.fx-heal   { animation: fx-heal   0.70s ease-out; }
+/* Blink speeds — on bar-fill */
+@keyframes fx-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.12; }
+}
+.fx-blink-slow   { animation: fx-blink 1.4s  ease-in-out infinite; }
+.fx-blink-medium { animation: fx-blink 0.7s  ease-in-out infinite; }
+.fx-blink-fast   { animation: fx-blink 0.32s ease-in-out infinite; }
 </style>
 </head>
 <body>
@@ -420,6 +445,8 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, pla
     log: [],
     history: []
   };
+  _prevHP = null;
+  _prevChakra = null;
 
   document.getElementById('log').innerHTML = '';
   show('combatScreen');
@@ -432,6 +459,25 @@ function startCombatWithParams(name, maxHP, maxChakra, opponent, opponentXp, pla
 }
 
 // ── Render ─────────────────────────────────────────────
+// Track previous values to detect changes and direction
+let _prevHP = null, _prevChakra = null;
+
+function flashBar(barId, fxClass) {
+  const track = document.getElementById(barId).parentElement;
+  track.classList.remove('fx-damage', 'fx-heal');
+  void track.offsetWidth; // reflow to restart animation
+  track.classList.add(fxClass);
+  track.addEventListener('animationend', () => track.classList.remove(fxClass), { once: true });
+}
+
+function applyBlinkClass(barId, ratio) {
+  const bar = document.getElementById(barId);
+  bar.classList.remove('fx-blink-slow', 'fx-blink-medium', 'fx-blink-fast');
+  if      (ratio < 0.10) bar.classList.add('fx-blink-fast');
+  else if (ratio < 0.25) bar.classList.add('fx-blink-medium');
+  else if (ratio < 0.50) bar.classList.add('fx-blink-slow');
+}
+
 function renderCombat() {
   document.getElementById('combatTitle').textContent = G.opponent ? `${G.name} vs. ${G.opponent}` : G.name;
 
@@ -452,11 +498,22 @@ function renderCombat() {
   document.getElementById('dispHP').textContent = G.hp;
   document.getElementById('dispMaxHP').textContent = G.maxHP;
   document.getElementById('barHP').style.width = Math.min(100, pct(G.hp, G.maxHP)) + '%';
+  if (_prevHP !== null && G.hp !== _prevHP) {
+    flashBar('barHP', G.hp < _prevHP ? 'fx-damage' : 'fx-heal');
+  }
+  applyBlinkClass('barHP', G.hp / G.maxHP);
 
   // Chakra — same logic
   document.getElementById('dispChakra').textContent = G.chakra;
   document.getElementById('dispMaxChakra').textContent = G.maxChakra;
   document.getElementById('barChakra').style.width = Math.min(100, pct(G.chakra, G.maxChakra)) + '%';
+  if (_prevChakra !== null && G.chakra !== _prevChakra) {
+    flashBar('barChakra', G.chakra < _prevChakra ? 'fx-damage' : 'fx-heal');
+  }
+  applyBlinkClass('barChakra', G.chakra / G.maxChakra);
+
+  _prevHP = G.hp;
+  _prevChakra = G.chakra;
 
   // Pips
   renderPips('roundPips', 3, G.round);

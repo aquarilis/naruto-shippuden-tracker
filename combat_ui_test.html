@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Combat UI — Test Effets</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { padding: 16px 14px 48px; }
+
+h2 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 28px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+h2:first-of-type { margin-top: 0; }
+
+/* ── Stat bars (from combat.html) ── */
+.stat { margin-bottom: 0; }
+.stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 7px;
+}
+.stat-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-hp     { background: var(--hp);     box-shadow: 0 0 6px var(--hp); }
+.dot-chakra { background: var(--chakra); box-shadow: 0 0 6px var(--chakra); }
+.stat-num { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat-max { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
+.bar-track {
+  height: 20px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.45s cubic-bezier(.4,0,.2,1);
+  min-width: 2px;
+}
+.bar-hp     { background: linear-gradient(90deg, var(--hp-dark),     var(--hp)); }
+.bar-chakra { background: linear-gradient(90deg, var(--chakra-dark), var(--chakra)); }
+
+/* ── Effect card layout ── */
+.effect-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.effect-card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.effect-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: var(--card2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.effect-card-desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.bar-wrap { margin-bottom: 12px; }
+.btn-trigger {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.btn-trigger:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ══════════════════════════════════
+   EFFECTS DEFINITIONS
+   ══════════════════════════════════ */
+
+/* 1 — Damage flash (HP) */
+@keyframes fx-damage-hp {
+  0%   { filter: brightness(1); }
+  15%  { filter: brightness(2.5) saturate(0.3); background: #fff; }
+  40%  { filter: brightness(1.6); }
+  100% { filter: brightness(1); }
+}
+.fx-damage-hp { animation: fx-damage-hp 0.55s ease-out; }
+
+/* 2 — Damage flash (Chakra) */
+@keyframes fx-damage-chakra {
+  0%   { filter: brightness(1); }
+  15%  { filter: brightness(2.5) saturate(0.3); background: #fff; }
+  40%  { filter: brightness(1.6); }
+  100% { filter: brightness(1); }
+}
+.fx-damage-chakra { animation: fx-damage-chakra 0.55s ease-out; }
+
+/* 3 — Heal flash (HP bar turns green momentarily) */
+@keyframes fx-heal {
+  0%   { filter: brightness(1) hue-rotate(0deg); }
+  20%  { filter: brightness(1.8) hue-rotate(80deg); }
+  60%  { filter: brightness(1.3) hue-rotate(40deg); }
+  100% { filter: brightness(1) hue-rotate(0deg); }
+}
+.fx-heal { animation: fx-heal 0.7s ease-out; }
+
+/* 4 — Glow pulse (low HP warning) */
+@keyframes fx-glow-hp {
+  0%, 100% { box-shadow: 0 0 0px var(--hp); }
+  50%       { box-shadow: 0 0 16px 4px var(--hp); }
+}
+.fx-glow-hp { animation: fx-glow-hp 1.4s ease-in-out infinite; }
+
+/* 5 — Glow pulse (low Chakra warning) */
+@keyframes fx-glow-chakra {
+  0%, 100% { box-shadow: 0 0 0px var(--chakra); }
+  50%       { box-shadow: 0 0 16px 4px var(--chakra); }
+}
+.fx-glow-chakra { animation: fx-glow-chakra 1.4s ease-in-out infinite; }
+
+/* 6 — Critical blink (HP) */
+@keyframes fx-blink-hp {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.15; }
+}
+.fx-blink-hp { animation: fx-blink-hp 0.55s ease-in-out infinite; }
+
+/* 7 — Critical blink (Chakra) */
+@keyframes fx-blink-chakra {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.15; }
+}
+.fx-blink-chakra { animation: fx-blink-chakra 0.55s ease-in-out infinite; }
+
+/* 8 — Bar track shake (damage received) */
+@keyframes fx-shake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-6px); }
+  40%  { transform: translateX(5px); }
+  60%  { transform: translateX(-4px); }
+  80%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+.fx-shake { animation: fx-shake 0.35s ease-out; }
+
+/* 9 — Drain (slow fill reduction, used on transition) */
+/* handled purely in JS via width transition */
+
+/* 10 — Glow + blink combo (critical HP) */
+@keyframes fx-critical {
+  0%, 100% { box-shadow: 0 0 4px var(--hp); opacity: 1; }
+  50%       { box-shadow: 0 0 20px 6px var(--hp); opacity: 0.5; }
+}
+.fx-critical { animation: fx-critical 0.7s ease-in-out infinite; }
+
+/* 11 — Ripple on bar-track */
+@keyframes fx-ripple {
+  0%   { box-shadow: inset 0 0 0px 0px rgba(255,255,255,0.3); }
+  30%  { box-shadow: inset 0 0 12px 3px rgba(255,255,255,0.25); }
+  100% { box-shadow: inset 0 0 0px 0px rgba(255,255,255,0); }
+}
+.fx-ripple { animation: fx-ripple 0.6s ease-out; }
+
+/* 12 — Color shift (chakra overcharge) */
+@keyframes fx-overcharge {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  30%  { filter: hue-rotate(60deg) brightness(1.8); }
+  60%  { filter: hue-rotate(120deg) brightness(1.4); }
+  100% { filter: hue-rotate(0deg) brightness(1); }
+}
+.fx-overcharge { animation: fx-overcharge 0.9s ease-out; }
+</style>
+</head>
+<body>
+
+<div class="header" style="margin-bottom:16px;">
+  <a href="index.html" aria-label="Retour à l'accueil">
+    <img src="img/naruto_shippuden_logo.svg" alt="Naruto" class="header-logo-left">
+  </a>
+  <div class="header-center">
+    <h1>Effets UI Combat</h1>
+    <div class="sub" style="font-size:0.65rem; color:var(--muted); letter-spacing:1.5px; margin-top:2px; text-transform:uppercase;">Test visuel</div>
+  </div>
+  <img src="img/shinobi_logo.svg" alt="" class="header-logo-right" onerror="this.style.display='none'">
+</div>
+
+<h2>⚡ Flash / Transition</h2>
+
+<!-- 1. Damage flash HP -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Damage Flash — PV
+    <span class="effect-tag">HP · Ponctuel</span>
+  </div>
+  <div class="effect-card-desc">Éclat blanc sur la barre quand le personnage reçoit des dégâts.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+      <div><span class="stat-num" id="val-dmg-hp">42</span><span class="stat-max"> / 68</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-hp" id="bar-dmg-hp" style="width:62%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="triggerFlash('bar-dmg-hp','fx-damage-hp','val-dmg-hp',42,68,-10)">💥 Infliger −10 PV</button>
+</div>
+
+<!-- 2. Damage flash Chakra -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Damage Flash — PC
+    <span class="effect-tag">Chakra · Ponctuel</span>
+  </div>
+  <div class="effect-card-desc">Éclat blanc sur la barre de chakra lors d'une dépense.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-chakra"></div>Points de Chakra</div>
+      <div><span class="stat-num" id="val-dmg-pc">14</span><span class="stat-max"> / 22</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-chakra" id="bar-dmg-pc" style="width:64%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="triggerFlash('bar-dmg-pc','fx-damage-chakra','val-dmg-pc',14,22,-5)">🔵 Dépenser −5 PC</button>
+</div>
+
+<!-- 3. Heal flash -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Heal Flash — PV
+    <span class="effect-tag">HP · Ponctuel</span>
+  </div>
+  <div class="effect-card-desc">Teinte verte sur la barre lors d'un soin.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+      <div><span class="stat-num" id="val-heal-hp">30</span><span class="stat-max"> / 68</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-hp" id="bar-heal-hp" style="width:44%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="triggerFlash('bar-heal-hp','fx-heal','val-heal-hp',30,68,+15)">💚 Soigner +15 PV</button>
+</div>
+
+<!-- 4. Shake (track) -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Shake — Track PV
+    <span class="effect-tag">HP · Ponctuel</span>
+  </div>
+  <div class="effect-card-desc">La piste tremble lors d'un coup violent.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+      <div><span class="stat-num" id="val-shake">55</span><span class="stat-max"> / 68</span></div>
+    </div>
+    <div class="bar-track" id="track-shake">
+      <div class="bar-fill bar-hp" id="bar-shake" style="width:81%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="triggerShake('track-shake','bar-shake','val-shake',55,68,-18)">💥 Coup puissant −18 PV</button>
+</div>
+
+<!-- 5. Ripple on track -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Ripple — Track PC
+    <span class="effect-tag">Chakra · Ponctuel</span>
+  </div>
+  <div class="effect-card-desc">Onde lumineuse interne sur la piste au moment d'une action.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-chakra"></div>Points de Chakra</div>
+      <div><span class="stat-num" id="val-ripple">20</span><span class="stat-max"> / 22</span></div>
+    </div>
+    <div class="bar-track" id="track-ripple">
+      <div class="bar-fill bar-chakra" id="bar-ripple" style="width:91%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="triggerFlash('bar-ripple','fx-overcharge','val-ripple',20,22,0,'track-ripple','fx-ripple')">✨ Action spéciale</button>
+</div>
+
+<h2>🔁 Continu (persistant)</h2>
+
+<!-- 6. Glow pulse HP -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Glow Pulse — PV bas
+    <span class="effect-tag">HP · Continu</span>
+  </div>
+  <div class="effect-card-desc">Halo rouge pulsant quand les PV sont critiques (&lt; 25%).</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+      <div><span class="stat-num">12</span><span class="stat-max"> / 68</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-hp" id="bar-glow-hp" style="width:18%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="toggleClass('bar-glow-hp','fx-glow-hp',this)">▶ Activer</button>
+</div>
+
+<!-- 7. Glow pulse Chakra -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Glow Pulse — PC bas
+    <span class="effect-tag">Chakra · Continu</span>
+  </div>
+  <div class="effect-card-desc">Halo bleu pulsant quand le chakra est presque épuisé.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-chakra"></div>Points de Chakra</div>
+      <div><span class="stat-num">3</span><span class="stat-max"> / 22</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-chakra" id="bar-glow-pc" style="width:14%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="toggleClass('bar-glow-pc','fx-glow-chakra',this)">▶ Activer</button>
+</div>
+
+<!-- 8. Blink HP -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Clignotement — PV critiques
+    <span class="effect-tag">HP · Continu</span>
+  </div>
+  <div class="effect-card-desc">La barre clignote rapidement — alerte danger imminent.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+      <div><span class="stat-num">6</span><span class="stat-max"> / 68</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-hp" id="bar-blink-hp" style="width:9%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="toggleClass('bar-blink-hp','fx-blink-hp',this)">▶ Activer</button>
+</div>
+
+<!-- 9. Blink Chakra -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Clignotement — PC épuisé
+    <span class="effect-tag">Chakra · Continu</span>
+  </div>
+  <div class="effect-card-desc">La barre de chakra clignote — plus assez pour agir.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-chakra"></div>Points de Chakra</div>
+      <div><span class="stat-num">2</span><span class="stat-max"> / 22</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-chakra" id="bar-blink-pc" style="width:9%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="toggleClass('bar-blink-pc','fx-blink-chakra',this)">▶ Activer</button>
+</div>
+
+<!-- 10. Critical combo -->
+<div class="effect-card">
+  <div class="effect-card-title">
+    Combo Critique — Glow + Blink PV
+    <span class="effect-tag">HP · Continu</span>
+  </div>
+  <div class="effect-card-desc">Fusion du glow et du clignotement pour une alerte maximum.</div>
+  <div class="bar-wrap">
+    <div class="stat-head">
+      <div class="stat-name"><div class="dot dot-hp"></div>Points de Vie</div>
+      <div><span class="stat-num">4</span><span class="stat-max"> / 68</span></div>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-hp" id="bar-critical" style="width:6%;"></div>
+    </div>
+  </div>
+  <button class="btn-trigger" onclick="toggleClass('bar-critical','fx-critical',this)">▶ Activer</button>
+</div>
+
+<script>
+/* ── Helpers ── */
+
+let timers = {};
+
+function triggerFlash(barId, fxClass, valId, current, max, delta, trackId, trackFxClass) {
+  const bar = document.getElementById(barId);
+  const val = document.getElementById(valId);
+
+  // Update value + bar width
+  let newVal = Math.max(0, Math.min(max, current + delta));
+  document.getElementById(barId).style.width = (newVal / max * 100).toFixed(1) + '%';
+  if (val) val.textContent = newVal;
+
+  // Trigger bar animation
+  bar.classList.remove(fxClass);
+  void bar.offsetWidth; // reflow
+  bar.classList.add(fxClass);
+  bar.addEventListener('animationend', () => bar.classList.remove(fxClass), { once: true });
+
+  // Optional track animation
+  if (trackId && trackFxClass) {
+    const track = document.getElementById(trackId);
+    track.classList.remove(trackFxClass);
+    void track.offsetWidth;
+    track.classList.add(trackFxClass);
+    track.addEventListener('animationend', () => track.classList.remove(trackFxClass), { once: true });
+  }
+
+  // Update the button's onclick to chain (prevent going below 0 / above max)
+  const btn = bar.closest('.effect-card').querySelector('.btn-trigger');
+  if (btn) {
+    const newCurrent = newVal;
+    btn.setAttribute('onclick',
+      `triggerFlash('${barId}','${fxClass}','${valId}',${newCurrent},${max},${delta}${trackId ? `,'${trackId}','${trackFxClass}'` : ''})`
+    );
+    if (newVal <= 0 || (delta > 0 && newVal >= max)) btn.disabled = true;
+    else btn.disabled = false;
+  }
+}
+
+function triggerShake(trackId, barId, valId, current, max, delta) {
+  const track = document.getElementById(trackId);
+  const bar   = document.getElementById(barId);
+  const val   = document.getElementById(valId);
+
+  let newVal = Math.max(0, Math.min(max, current + delta));
+  bar.style.width = (newVal / max * 100).toFixed(1) + '%';
+  if (val) val.textContent = newVal;
+
+  // Flash on bar
+  bar.classList.remove('fx-damage-hp');
+  void bar.offsetWidth;
+  bar.classList.add('fx-damage-hp');
+  bar.addEventListener('animationend', () => bar.classList.remove('fx-damage-hp'), { once: true });
+
+  // Shake on track
+  track.classList.remove('fx-shake');
+  void track.offsetWidth;
+  track.classList.add('fx-shake');
+  track.addEventListener('animationend', () => track.classList.remove('fx-shake'), { once: true });
+
+  const btn = track.closest('.effect-card').querySelector('.btn-trigger');
+  if (btn) {
+    btn.setAttribute('onclick', `triggerShake('${trackId}','${barId}','${valId}',${newVal},${max},${delta})`);
+    btn.disabled = newVal <= 0;
+  }
+}
+
+function toggleClass(barId, fxClass, btn) {
+  const bar = document.getElementById(barId);
+  const active = bar.classList.toggle(fxClass);
+  btn.textContent = active ? '⏹ Désactiver' : '▶ Activer';
+}
+</script>
+</body>
+</html>
