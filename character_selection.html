@@ -675,7 +675,8 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
 
     const tourLabel = document.createElement('div');
     tourLabel.className = 'cc-tour-label';
-    tourLabel.textContent = availabilityLabel(c);
+    const naturallyAvailable = isAvailable(c, currentTurn, false);
+    tourLabel.textContent = (forceUnlock && !naturallyAvailable ? '🔓 ' : '') + availabilityLabel(c);
     card.appendChild(tourLabel);
 
     stage.appendChild(card);
@@ -1087,7 +1088,8 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
 
     const caption = document.createElement('div');
     caption.className = 'roster-card-caption';
-    caption.textContent = availabilityLabel(c);
+    const naturallyAvail = isAvailable(c, currentTurn, false);
+    caption.textContent = (forceUnlock && !naturallyAvail ? '🔓 ' : '') + availabilityLabel(c);
     card.appendChild(caption);
 
     card.addEventListener('click', () => onSelect(c, card, gridId));
