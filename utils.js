@@ -7,5 +7,5 @@ function getGameData() {
 }
 
 function getTeamLogoPath(team) {
-  return team === 'alliance' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
+  return team === 'shinobi' ? 'img/alliance_shinobi.svg' : 'img/akatsuki.svg';
 }

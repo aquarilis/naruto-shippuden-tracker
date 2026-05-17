@@ -274,7 +274,7 @@ function renderGameTracker() {
 
   // Set team logo and name
   document.getElementById('teamLogo').src = getTeamLogoPath(gameData.team);
-  document.getElementById('teamName').textContent = gameData.team === 'alliance' ? 'Alliance Shinobi' : 'Akatsuki';
+  document.getElementById('teamName').textContent = gameData.team === 'shinobi' ? 'Alliance Shinobi' : 'Akatsuki';
 
   // Update tour count
   const nextTour = gameData.turns.length + 1;
