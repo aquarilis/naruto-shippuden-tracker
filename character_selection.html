@@ -1016,8 +1016,11 @@ function getDefeatedNames(gameData) {
 }
 
 function formatStats(c) {
-  const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
-  return `💙 ${totalChakra} PC · ❤️ ${c.hp} PV · ⭐ ${c.xp ?? 0} XP`;
+  const mp = c.mp || 0;
+  const extra = c.extra_mp || 0;
+  const total = mp + extra;
+  const chakraStr = extra > 0 ? `${total} (${mp}+${extra}) PC` : `${total} PC`;
+  return `💙 ${chakraStr} · ❤️ ${c.hp} PV · ⭐ ${c.xp ?? 0} XP`;
 }
 
 function isDefeated(c) {
