@@ -546,12 +546,21 @@ function setupCarouselSwipe(context) {
     if (Math.abs(dx) > 40) carouselGoTo(context, carouselState[context].index + (dx < 0 ? 1 : -1));
     touchStartX = null;
   };
-  // Also arrow keys when focused
+  // Arrow keys when focused
   wrap.tabIndex = 0;
   wrap.onkeydown = e => {
     if (e.key === 'ArrowLeft')  carouselGoTo(context, carouselState[context].index - 1);
     if (e.key === 'ArrowRight') carouselGoTo(context, carouselState[context].index + 1);
   };
+  // Mouse wheel navigation
+  let wheelTimer = null;
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (wheelTimer) return;
+    const dir = e.deltaY > 0 || e.deltaX > 0 ? 1 : -1;
+    carouselGoTo(context, carouselState[context].index + dir);
+    wheelTimer = setTimeout(() => { wheelTimer = null; }, 200);
+  }, { passive: false });
 }
 
 function toggleViewMode(context) {
@@ -658,8 +667,21 @@ function buildView(context, characters, currentTurn, onSelect, forceUnlock) {
   } else {
     const gridId = context === 'player' ? 'characterGrid' : 'opponentGrid';
     buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock);
+    setupGridWheel(gridId);
   }
   applyViewMode(context);
+}
+
+function setupGridWheel(gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid || grid._wheelBound) return;
+  grid._wheelBound = true;
+  grid.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      grid.scrollLeft += e.deltaY;
+    }
+  }, { passive: false });
 }
 
 function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock) {
