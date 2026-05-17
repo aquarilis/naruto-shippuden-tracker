@@ -39,21 +39,27 @@ body {
 /* ── Header 3 zones ── */
 .header {
   display: grid;
-  grid-template-columns: min(100px, 18vw) 1fr min(100px, 18vw);
+  grid-template-columns: min-content 1fr min-content;
   align-items: center;
   margin-bottom: 20px;
-  min-height: min(100px, 18vw);
 }
 
 .header-logo-left {
-  height: min(100px, 18vw);
+  height: min(100px, 16vw);
   width: auto;
 }
 
 .header-logo-right {
-  height: min(100px, 18vw);
+  height: min(100px, 16vw);
   width: auto;
   justify-self: end;
+}
+
+@media (max-width: 400px) {
+  .header-logo-left,
+  .header-logo-right {
+    height: min(60px, 14vw);
+  }
 }
 
 .header-center {
