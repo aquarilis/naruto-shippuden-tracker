@@ -65,7 +65,6 @@ body { padding: 16px 14px 32px; }
 }
 
 .roster-card.unavailable {
-  cursor: default;
   opacity: 1;
 }
 
@@ -246,6 +245,11 @@ body { padding: 16px 14px 32px; }
 
   <!-- List view -->
   <div class="roster-grid" id="characterGrid"></div>
+  <div id="characterListInfo" style="display:none; text-align:center; padding: 8px 0 4px; line-height:1.6;">
+    <div id="characterListName" style="font-weight:600; font-size:0.95rem;"></div>
+    <div id="characterListAvail" style="font-size:0.75rem; color:var(--muted);"></div>
+    <div id="characterListStats" style="font-size:0.8rem; color:var(--muted);"></div>
+  </div>
 
   <!-- Carousel view -->
   <div id="characterCarousel" style="display:none;">
@@ -254,8 +258,8 @@ body { padding: 16px 14px 32px; }
     </div>
     <div class="carousel-info" id="characterCarouselInfo">
       <div class="carousel-info-name" id="characterCarouselName">—</div>
-      <div class="carousel-info-stats" id="characterCarouselStats"></div>
       <div class="carousel-info-unavail" id="characterCarouselUnavail"></div>
+      <div class="carousel-info-stats" id="characterCarouselStats"></div>
     </div>
     <div class="carousel-dots" id="characterCarouselDots"></div>
   </div>
@@ -311,6 +315,11 @@ body { padding: 16px 14px 32px; }
 
   <!-- List view -->
   <div class="roster-grid" id="opponentGrid"></div>
+  <div id="opponentListInfo" style="display:none; text-align:center; padding: 8px 0 4px; line-height:1.6;">
+    <div id="opponentListName" style="font-weight:600; font-size:0.95rem;"></div>
+    <div id="opponentListAvail" style="font-size:0.75rem; color:var(--muted);"></div>
+    <div id="opponentListStats" style="font-size:0.8rem; color:var(--muted);"></div>
+  </div>
 
   <!-- Carousel view -->
   <div id="opponentCarousel" style="display:none;">
@@ -319,8 +328,8 @@ body { padding: 16px 14px 32px; }
     </div>
     <div class="carousel-info" id="opponentCarouselInfo">
       <div class="carousel-info-name" id="opponentCarouselName">—</div>
-      <div class="carousel-info-stats" id="opponentCarouselStats"></div>
       <div class="carousel-info-unavail" id="opponentCarouselUnavail"></div>
+      <div class="carousel-info-stats" id="opponentCarouselStats"></div>
     </div>
     <div class="carousel-dots" id="opponentCarouselDots"></div>
   </div>
@@ -568,8 +577,7 @@ function updateCarouselInfo(context, c, available, currentTurn) {
   document.getElementById(`${prefix}CarouselName`).textContent = c.display_name;
   document.getElementById(`${prefix}CarouselStats`).textContent =
     available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP` : '';
-  document.getElementById(`${prefix}CarouselUnavail`).textContent =
-    !available ? unavailableReason(c, currentTurn) : '';
+  document.getElementById(`${prefix}CarouselUnavail`).textContent = availabilityLabel(c);
 }
 
 function setupCarouselSwipe(context) {
@@ -654,9 +662,11 @@ function applyViewMode(context) {
   const gridEl      = document.getElementById(isPlayer ? 'characterGrid'     : 'opponentGrid');
   const carouselEl  = document.getElementById(isPlayer ? 'characterCarousel' : 'opponentCarousel');
   const toggleBtn   = document.getElementById(isPlayer ? 'viewTogglePlayer'  : 'viewToggleOpponent');
+  const listInfoEl  = document.getElementById(isPlayer ? 'characterListInfo' : 'opponentListInfo');
 
   gridEl.style.display     = mode === 'list' ? '' : 'none';
   carouselEl.style.display = mode === 'carousel' ? '' : 'none';
+  if (mode === 'carousel' && listInfoEl) listInfoEl.style.display = 'none';
   if (toggleBtn) {
     toggleBtn.textContent = mode === 'list' ? '◎ Vue carousel' : '⊞ Vue liste';
     toggleBtn.style.color       = '';
@@ -722,6 +732,14 @@ function isAvailable(c, currentTurn) {
   return true;
 }
 
+function availabilityLabel(c) {
+  const from = c.available_from_turn;
+  const until = c.available_until_turn;
+  if (from === until) return `Tour ${from}`;
+  if (until === null || until === undefined) return `Tour ${from}+`;
+  return `Tour ${from} à ${until}`;
+}
+
 function unavailableReason(c, currentTurn) {
   if (c.available_from_turn > currentTurn) return `Disponible à partir du tour ${c.available_from_turn}`;
   return `Disponible jusqu'au tour ${c.available_until_turn}`;
@@ -768,16 +786,12 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
 
     card.appendChild(img);
 
-    if (!available) {
-      const caption = document.createElement('div');
-      caption.className = 'roster-card-caption';
-      caption.textContent = unavailableReason(c, currentTurn);
-      card.appendChild(caption);
-    }
+    const caption = document.createElement('div');
+    caption.className = 'roster-card-caption';
+    caption.textContent = availabilityLabel(c);
+    card.appendChild(caption);
 
-    if (available) {
-      card.addEventListener('click', () => onSelect(c, card, gridId));
-    }
+    card.addEventListener('click', () => onSelect(c, card, gridId));
 
     grid.appendChild(card);
   });
@@ -793,34 +807,48 @@ function sortCharacters(characters, currentTurn, forceUnlock) {
       case 'hp':   return (b.hp || 0) - (a.hp || 0);
       case 'mp':   return ((b.mp || 0) + (b.extra_mp || 0)) - ((a.mp || 0) + (a.extra_mp || 0));
       case 'xp':   return (b.xp || 0) - (a.xp || 0);
-      default:     return a.sorting_name.localeCompare(b.sorting_name); // availability = alpha
+      default:     return (a.available_from_turn || 0) - (b.available_from_turn || 0); // availability = tour croissant
     }
   });
 }
 
-function onCharacterSelect(c, card) {
-  selectedCharacter = c;
+function onCharacterSelect(c, card, gridId) {
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+  const available = unlockPlayer || isAvailable(c, currentTurn);
+  selectedCharacter = available ? c : null;
   if (card) {
-    // List mode
     document.querySelectorAll('#characterGrid .roster-card').forEach(el => el.classList.remove('selected'));
     card.classList.add('selected');
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
+    document.getElementById('characterListName').textContent = c.display_name;
+    document.getElementById('characterListAvail').textContent = availabilityLabel(c);
+    document.getElementById('characterListStats').textContent = `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`;
+    document.getElementById('characterListInfo').style.display = '';
   }
   const nextBtn = document.getElementById('nextBtn');
-  nextBtn.disabled = false;
+  nextBtn.disabled = !available;
   nextBtn.style.opacity = '';
 }
 
-function onOpponentSelect(c, card) {
-  selectedOpponent = c;
+function onOpponentSelect(c, card, gridId) {
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+  const available = unlockOpponent || isAvailable(c, currentTurn);
+  selectedOpponent = available ? c : null;
   if (card) {
-    // List mode
     document.querySelectorAll('#opponentGrid .roster-card').forEach(el => el.classList.remove('selected'));
     card.classList.add('selected');
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
+    document.getElementById('opponentListName').textContent = c.display_name;
+    document.getElementById('opponentListAvail').textContent = availabilityLabel(c);
+    document.getElementById('opponentListStats').textContent = `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`;
+    document.getElementById('opponentListInfo').style.display = '';
   }
   const startBtn = document.getElementById('startBtn');
-  startBtn.disabled = false;
+  startBtn.disabled = !available;
   startBtn.style.opacity = '';
 }
 
@@ -858,6 +886,7 @@ function goBackToStep2() {
   carouselState.opponent.selected = null;
   const startBtn = document.getElementById('startBtn');
   startBtn.disabled = true; startBtn.style.opacity = '';
+  document.getElementById('opponentListInfo').style.display = 'none';
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
   const myTeam = gameData.team.toLowerCase();
@@ -1044,8 +1073,6 @@ function unlockGridInPlace(gridId, onSelect) {
   grid.querySelectorAll('.roster-card.unavailable').forEach(card => {
     card.classList.remove('unavailable');
     card.title = '';
-    const caption = card.querySelector('.roster-card-caption');
-    if (caption) caption.remove();
     const name = card.dataset.name;
     const c = roster.find(r => r.display_name === name);
     if (c) card.addEventListener('click', () => onSelect(c, card, gridId));
@@ -1061,6 +1088,7 @@ function goBackToStep1() {
   carouselState.player.selected = null;
   const nextBtn = document.getElementById('nextBtn');
   nextBtn.disabled = true; nextBtn.style.opacity = '';
+  document.getElementById('characterListInfo').style.display = 'none';
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
   const myTeam = gameData.team.toLowerCase();
