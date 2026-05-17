@@ -95,10 +95,8 @@ body { padding: 16px 14px 32px; }
 }
 
 .roster-card-defeated-overlay .defeated-x {
-  font-size: 2.5rem;
-  color: #fff;
+  font-size: 2rem;
   line-height: 1;
-  font-weight: 900;
 }
 
 .roster-card-defeated-overlay .defeated-label {
@@ -107,6 +105,86 @@ body { padding: 16px 14px 32px; }
   color: #fff;
   letter-spacing: 0.04em;
   margin-top: 2px;
+}
+
+/* Roster card "not yet available" overlay */
+.roster-card-pending-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 60, 120, 0.55);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.roster-card-pending-overlay .pending-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.roster-card-pending-overlay .pending-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+  text-align: center;
+}
+
+/* Roster card "already chosen" overlay */
+.roster-card-chosen-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(180, 110, 0, 0.55);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.roster-card-chosen-overlay .chosen-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.roster-card-chosen-overlay .chosen-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* Carousel "already chosen" overlay */
+.carousel-card .cc-chosen-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(180, 110, 0, 0.55);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.carousel-card .cc-chosen-overlay .chosen-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.carousel-card .cc-chosen-overlay .chosen-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
 }
 
 /* Carousel defeated overlay */
@@ -124,10 +202,8 @@ body { padding: 16px 14px 32px; }
 }
 
 .carousel-card .cc-defeated-overlay .defeated-x {
-  font-size: 3rem;
-  color: #fff;
+  font-size: 2.5rem;
   line-height: 1;
-  font-weight: 900;
 }
 
 .carousel-card .cc-defeated-overlay .defeated-label {
@@ -136,6 +212,34 @@ body { padding: 16px 14px 32px; }
   color: #fff;
   letter-spacing: 0.04em;
   margin-top: 4px;
+}
+
+/* Carousel "not yet available" overlay */
+.carousel-card .cc-pending-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 60, 120, 0.55);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.carousel-card .cc-pending-overlay .pending-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.carousel-card .cc-pending-overlay .pending-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+  text-align: center;
 }
 
 .roster-card-caption {
@@ -499,8 +603,11 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
   }
 
   sorted.forEach((c, i) => {
-    const available = isAvailable(c, currentTurn, forceUnlock);
-    const defeated = !forceUnlock && isDefeated(c);
+    const isOpponentCtx = context === 'opponent';
+    const sameAsPlayer = isOpponentCtx && isSameAsPlayer(c);
+    const available = !sameAsPlayer && isAvailable(c, currentTurn, forceUnlock);
+    const defeated = !forceUnlock && !sameAsPlayer && isDefeated(c);
+    const notYet = !forceUnlock && !sameAsPlayer && !defeated && c.available_from_turn > currentTurn;
     const card = document.createElement('div');
     card.className = 'carousel-card' + (available ? '' : ' cc-unavailable');
     card.dataset.index = i;
@@ -512,10 +619,20 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
     img.loading = 'lazy';
     card.appendChild(img);
 
-    if (defeated) {
+    if (sameAsPlayer) {
+      const overlay = document.createElement('div');
+      overlay.className = 'cc-chosen-overlay';
+      overlay.innerHTML = '<span class="chosen-icon">🔒</span><span class="chosen-label">Déjà choisi</span>';
+      card.appendChild(overlay);
+    } else if (defeated) {
       const overlay = document.createElement('div');
       overlay.className = 'cc-defeated-overlay';
-      overlay.innerHTML = '<span class="defeated-x">✕</span><span class="defeated-label">Vaincu(e)</span>';
+      overlay.innerHTML = '<span class="defeated-x">💀</span><span class="defeated-label">Vaincu(e)</span>';
+      card.appendChild(overlay);
+    } else if (notYet) {
+      const overlay = document.createElement('div');
+      overlay.className = 'cc-pending-overlay';
+      overlay.innerHTML = '<span class="pending-icon">⏳</span><span class="pending-label">Indisponible\npour l\'instant</span>';
       card.appendChild(overlay);
     }
 
@@ -543,7 +660,8 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
     });
     if (nearest !== cs.index) carouselGoTo(context, nearest);
     const c = cs.items[nearest];
-    const available = isAvailable(c, currentTurn, forceUnlock);
+    const sameAsPlayer = context === 'opponent' && isSameAsPlayer(c);
+    const available = !sameAsPlayer && isAvailable(c, currentTurn, forceUnlock);
     cards.forEach(el => el.classList.remove('cc-selected'));
     if (available) {
       cs.selected = c;
@@ -605,8 +723,9 @@ function carouselRender(context) {
   // Update info panel
   const c = cs.items[cs.index];
   if (c) {
-    const available = isAvailable(c, currentTurn, unlock);
-    updateCarouselInfo(context, c, available, currentTurn);
+    const sameAsPlayer = context === 'opponent' && isSameAsPlayer(c);
+    const available = !sameAsPlayer && isAvailable(c, currentTurn, unlock);
+    updateCarouselInfo(context, c, available, currentTurn, sameAsPlayer);
     const stageEl = document.getElementById(stageId);
     if (available) {
       // Auto-select centered card
@@ -640,7 +759,7 @@ function carouselRender(context) {
   }
 }
 
-function updateCarouselInfo(context, c, available, currentTurn) {
+function updateCarouselInfo(context, c, available, currentTurn, sameAsPlayer) {
   const prefix = context === 'player' ? 'character' : 'opponent';
   const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
   const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
@@ -649,7 +768,8 @@ function updateCarouselInfo(context, c, available, currentTurn) {
   document.getElementById(`${prefix}CarouselStats`).textContent =
     available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP` : '';
   document.getElementById(`${prefix}CarouselUnavail`).textContent =
-    defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
+    sameAsPlayer ? `Déjà choisi · ${availabilityLabel(c)}`
+    : defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
 }
 
 function setupCarouselSwipe(context) {
@@ -821,6 +941,10 @@ function isAvailable(c, currentTurn, forceUnlock) {
   return true;
 }
 
+function isSameAsPlayer(c) {
+  return selectedCharacter && c.display_name === selectedCharacter.display_name;
+}
+
 function availabilityLabel(c) {
   const from = c.available_from_turn;
   const until = c.available_until_turn;
@@ -862,8 +986,11 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
   grid.innerHTML = '';
   const sorted = sortCharacters([...characters], currentTurn, forceUnlock);
   sorted.forEach(c => {
-    const available = isAvailable(c, currentTurn, forceUnlock);
-    const defeated = !forceUnlock && isDefeated(c);
+    const isOpponentGrid = gridId === 'opponentGrid';
+    const sameAsPlayer = isOpponentGrid && isSameAsPlayer(c);
+    const available = !sameAsPlayer && isAvailable(c, currentTurn, forceUnlock);
+    const defeated = !forceUnlock && !sameAsPlayer && isDefeated(c);
+    const notYet = !forceUnlock && !sameAsPlayer && !defeated && c.available_from_turn > currentTurn;
     const card = document.createElement('div');
     card.className = 'roster-card' + (available ? '' : ' unavailable') + (defeated ? ' defeated' : '');
     card.dataset.name = c.display_name;
@@ -874,10 +1001,20 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
     img.loading = 'lazy';
     card.appendChild(img);
 
-    if (defeated) {
+    if (sameAsPlayer) {
+      const overlay = document.createElement('div');
+      overlay.className = 'roster-card-chosen-overlay';
+      overlay.innerHTML = '<span class="chosen-icon">🔒</span><span class="chosen-label">Déjà choisi</span>';
+      card.appendChild(overlay);
+    } else if (defeated) {
       const overlay = document.createElement('div');
       overlay.className = 'roster-card-defeated-overlay';
-      overlay.innerHTML = '<span class="defeated-x">✕</span><span class="defeated-label">Vaincu(e)</span>';
+      overlay.innerHTML = '<span class="defeated-x">💀</span><span class="defeated-label">Vaincu(e)</span>';
+      card.appendChild(overlay);
+    } else if (notYet) {
+      const overlay = document.createElement('div');
+      overlay.className = 'roster-card-pending-overlay';
+      overlay.innerHTML = '<span class="pending-icon">⏳</span><span class="pending-label">Indisponible\npour l\'instant</span>';
       card.appendChild(overlay);
     }
 
@@ -932,7 +1069,8 @@ function onCharacterSelect(c, card, gridId) {
 function onOpponentSelect(c, card, gridId) {
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
-  const available = isAvailable(c, currentTurn, unlockOpponent);
+  const sameAsPlayer = isSameAsPlayer(c);
+  const available = !sameAsPlayer && isAvailable(c, currentTurn, unlockOpponent);
   selectedOpponent = available ? c : null;
   if (card) {
     document.querySelectorAll('#opponentGrid .roster-card').forEach(el => el.classList.remove('selected'));
@@ -940,9 +1078,10 @@ function onOpponentSelect(c, card, gridId) {
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
     const defeated = !unlockOpponent && isDefeated(c);
+    const availLabel = sameAsPlayer ? `Déjà choisi · ${availabilityLabel(c)}`
+      : defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
     document.getElementById('opponentListName').textContent = c.display_name;
-    document.getElementById('opponentListAvail').textContent =
-      defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
+    document.getElementById('opponentListAvail').textContent = availLabel;
     document.getElementById('opponentListStats').textContent = `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`;
     document.getElementById('opponentListInfo').style.display = '';
   }
