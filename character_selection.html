@@ -78,6 +78,66 @@ body { padding: 16px 14px 32px; }
   filter: grayscale(1) brightness(0.45);
 }
 
+.roster-card.defeated img {
+  filter: grayscale(1) brightness(0.35);
+}
+
+.roster-card-defeated-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(180, 0, 0, 0.45);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.roster-card-defeated-overlay .defeated-x {
+  font-size: 2.5rem;
+  color: #fff;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.roster-card-defeated-overlay .defeated-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* Carousel defeated overlay */
+.carousel-card .cc-defeated-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(180, 0, 0, 0.45);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.carousel-card .cc-defeated-overlay .defeated-x {
+  font-size: 3rem;
+  color: #fff;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.carousel-card .cc-defeated-overlay .defeated-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
 .roster-card-caption {
   font-size: 0.7rem;
   color: var(--muted);
@@ -439,17 +499,26 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
   }
 
   sorted.forEach((c, i) => {
-    const available = forceUnlock || isAvailable(c, currentTurn);
+    const available = isAvailable(c, currentTurn, forceUnlock);
+    const defeated = !forceUnlock && isDefeated(c);
     const card = document.createElement('div');
     card.className = 'carousel-card' + (available ? '' : ' cc-unavailable');
     card.dataset.index = i;
-    card.style.pointerEvents = 'none'; // clicks handled at stage level
+    card.style.pointerEvents = 'none';
 
     const img = document.createElement('img');
     img.src = c.roster_image ? `img/roster/${c.roster_image}` : '';
     img.alt = c.display_name;
     img.loading = 'lazy';
     card.appendChild(img);
+
+    if (defeated) {
+      const overlay = document.createElement('div');
+      overlay.className = 'cc-defeated-overlay';
+      overlay.innerHTML = '<span class="defeated-x">✕</span><span class="defeated-label">Vaincu(e)</span>';
+      card.appendChild(overlay);
+    }
+
     stage.appendChild(card);
 
     // Dot
@@ -474,7 +543,7 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
     });
     if (nearest !== cs.index) carouselGoTo(context, nearest);
     const c = cs.items[nearest];
-    const available = forceUnlock || isAvailable(c, currentTurn);
+    const available = isAvailable(c, currentTurn, forceUnlock);
     cards.forEach(el => el.classList.remove('cc-selected'));
     if (available) {
       cs.selected = c;
@@ -536,7 +605,7 @@ function carouselRender(context) {
   // Update info panel
   const c = cs.items[cs.index];
   if (c) {
-    const available = unlock || isAvailable(c, currentTurn);
+    const available = isAvailable(c, currentTurn, unlock);
     updateCarouselInfo(context, c, available, currentTurn);
     const stageEl = document.getElementById(stageId);
     if (available) {
@@ -574,10 +643,13 @@ function carouselRender(context) {
 function updateCarouselInfo(context, c, available, currentTurn) {
   const prefix = context === 'player' ? 'character' : 'opponent';
   const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
+  const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
+  const defeated = !unlock && isDefeated(c);
   document.getElementById(`${prefix}CarouselName`).textContent = c.display_name;
   document.getElementById(`${prefix}CarouselStats`).textContent =
     available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP` : '';
-  document.getElementById(`${prefix}CarouselUnavail`).textContent = availabilityLabel(c);
+  document.getElementById(`${prefix}CarouselUnavail`).textContent =
+    defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
 }
 
 function setupCarouselSwipe(context) {
@@ -726,7 +798,24 @@ function updateSwapButtons() {
   }
 }
 
-function isAvailable(c, currentTurn) {
+let defeatedNames = new Set();
+
+function getDefeatedNames(gameData) {
+  const names = new Set();
+  for (const turn of (gameData.turns || [])) {
+    if (turn.result === 'loss' && turn.playerCharacter?.name) names.add(turn.playerCharacter.name);
+    if (turn.result === 'win' && turn.opponent) names.add(turn.opponent);
+  }
+  return names;
+}
+
+function isDefeated(c) {
+  return defeatedNames.has(c.display_name);
+}
+
+function isAvailable(c, currentTurn, forceUnlock) {
+  if (forceUnlock) return true;
+  if (isDefeated(c)) return false;
   if (c.available_from_turn > currentTurn) return false;
   if (c.available_until_turn !== null && c.available_until_turn !== undefined && currentTurn > c.available_until_turn) return false;
   return true;
@@ -773,18 +862,24 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
   grid.innerHTML = '';
   const sorted = sortCharacters([...characters], currentTurn, forceUnlock);
   sorted.forEach(c => {
-    const available = forceUnlock || isAvailable(c, currentTurn);
+    const available = isAvailable(c, currentTurn, forceUnlock);
+    const defeated = !forceUnlock && isDefeated(c);
     const card = document.createElement('div');
-    card.className = 'roster-card' + (available ? '' : ' unavailable');
+    card.className = 'roster-card' + (available ? '' : ' unavailable') + (defeated ? ' defeated' : '');
     card.dataset.name = c.display_name;
-    if (!available) card.title = unavailableReason(c, currentTurn);
 
     const img = document.createElement('img');
     img.src = c.roster_image ? `img/roster/${c.roster_image}` : '';
     img.alt = c.display_name;
     img.loading = 'lazy';
-
     card.appendChild(img);
+
+    if (defeated) {
+      const overlay = document.createElement('div');
+      overlay.className = 'roster-card-defeated-overlay';
+      overlay.innerHTML = '<span class="defeated-x">✕</span><span class="defeated-label">Vaincu(e)</span>';
+      card.appendChild(overlay);
+    }
 
     const caption = document.createElement('div');
     caption.className = 'roster-card-caption';
@@ -799,8 +894,8 @@ function buildRosterGrid(gridId, characters, currentTurn, onSelect, forceUnlock)
 
 function sortCharacters(characters, currentTurn, forceUnlock) {
   return characters.sort((a, b) => {
-    const aAvail = (forceUnlock || isAvailable(a, currentTurn)) ? 0 : 1;
-    const bAvail = (forceUnlock || isAvailable(b, currentTurn)) ? 0 : 1;
+    const aAvail = isAvailable(a, currentTurn, forceUnlock) ? 0 : 1;
+    const bAvail = isAvailable(b, currentTurn, forceUnlock) ? 0 : 1;
     if (aAvail !== bAvail) return aAvail - bAvail;
     switch (sortKey) {
       case 'name': return a.sorting_name.localeCompare(b.sorting_name);
@@ -815,15 +910,17 @@ function sortCharacters(characters, currentTurn, forceUnlock) {
 function onCharacterSelect(c, card, gridId) {
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
-  const available = unlockPlayer || isAvailable(c, currentTurn);
+  const available = isAvailable(c, currentTurn, unlockPlayer);
   selectedCharacter = available ? c : null;
   if (card) {
     document.querySelectorAll('#characterGrid .roster-card').forEach(el => el.classList.remove('selected'));
     card.classList.add('selected');
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
+    const defeated = !unlockPlayer && isDefeated(c);
     document.getElementById('characterListName').textContent = c.display_name;
-    document.getElementById('characterListAvail').textContent = availabilityLabel(c);
+    document.getElementById('characterListAvail').textContent =
+      defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
     document.getElementById('characterListStats').textContent = `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`;
     document.getElementById('characterListInfo').style.display = '';
   }
@@ -835,15 +932,17 @@ function onCharacterSelect(c, card, gridId) {
 function onOpponentSelect(c, card, gridId) {
   const gameData = getGameData();
   const currentTurn = gameData.turns.length + 1;
-  const available = unlockOpponent || isAvailable(c, currentTurn);
+  const available = isAvailable(c, currentTurn, unlockOpponent);
   selectedOpponent = available ? c : null;
   if (card) {
     document.querySelectorAll('#opponentGrid .roster-card').forEach(el => el.classList.remove('selected'));
     card.classList.add('selected');
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
+    const defeated = !unlockOpponent && isDefeated(c);
     document.getElementById('opponentListName').textContent = c.display_name;
-    document.getElementById('opponentListAvail').textContent = availabilityLabel(c);
+    document.getElementById('opponentListAvail').textContent =
+      defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
     document.getElementById('opponentListStats').textContent = `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`;
     document.getElementById('opponentListInfo').style.display = '';
   }
@@ -860,7 +959,7 @@ function syncCarouselSelection(context) {
   const currentTurn = gameData.turns.length + 1;
   const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
   const c = cs.items[cs.index];
-  const available = unlock || isAvailable(c, currentTurn);
+  const available = isAvailable(c, currentTurn, unlock);
   if (context === 'player') selectedCharacter = available ? c : null;
   else selectedOpponent = available ? c : null;
 }
@@ -907,6 +1006,8 @@ function initializePage() {
     window.location.href = 'index.html';
     return;
   }
+
+  defeatedNames = getDefeatedNames(gameData);
 
   const logoPath = getTeamLogoPath(gameData.team);
   document.getElementById('teamLogo1').src = logoPath;
@@ -1051,7 +1152,8 @@ function confirmUnlock() {
     if (viewModes.player === 'carousel') {
       buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, true);
     } else {
-      unlockGridInPlace('characterGrid', onCharacterSelect);
+      buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, true);
+      document.getElementById('characterListInfo').style.display = 'none';
     }
   } else {
     unlockOpponent = true;
@@ -1061,7 +1163,8 @@ function confirmUnlock() {
     if (viewModes.opponent === 'carousel') {
       buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, true);
     } else {
-      unlockGridInPlace('opponentGrid', onOpponentSelect);
+      buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, true);
+      document.getElementById('opponentListInfo').style.display = 'none';
     }
   }
   updateUnlockButtons();
