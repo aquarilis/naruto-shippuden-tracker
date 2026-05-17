@@ -236,7 +236,7 @@ body { padding: 16px 14px 32px; }
       <button type="button" class="btn btn-ghost" onclick="openSortMenu('characterGrid', this)" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
       <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
       <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
-      <button type="button" class="btn btn-ghost" id="viewTogglePlayer" onclick="toggleViewMode('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Carousel</button>
+      <button type="button" class="btn btn-ghost" id="viewTogglePlayer" onclick="toggleViewMode('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Vue carousel</button>
     </div>
   </div>
 
@@ -301,7 +301,7 @@ body { padding: 16px 14px 32px; }
       <button type="button" class="btn btn-ghost" onclick="openSortMenu('opponentGrid', this)" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇅ Trier</button>
       <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
       <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
-      <button type="button" class="btn btn-ghost" id="viewToggleOpponent" onclick="toggleViewMode('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Carousel</button>
+      <button type="button" class="btn btn-ghost" id="viewToggleOpponent" onclick="toggleViewMode('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Vue carousel</button>
     </div>
   </div>
 
@@ -393,10 +393,8 @@ let playerSwapped = false;
 let opponentSwapped = false;
 
 // ── View mode (list | carousel) ───────────────────────────
-const viewModes = {
-  player: localStorage.getItem('viewMode_player') || 'list',
-  opponent: localStorage.getItem('viewMode_opponent') || 'list'
-};
+const _sharedMode = localStorage.getItem('viewMode') || 'carousel';
+const viewModes = { player: _sharedMode, opponent: _sharedMode };
 
 // carousel state per context
 const carouselState = {
@@ -565,8 +563,9 @@ function setupCarouselSwipe(context) {
 
 function toggleViewMode(context) {
   const mode = viewModes[context] === 'list' ? 'carousel' : 'list';
-  viewModes[context] = mode;
-  localStorage.setItem(`viewMode_${context}`, mode);
+  viewModes.player = mode;
+  viewModes.opponent = mode;
+  localStorage.setItem('viewMode', mode);
   applyViewMode(context);
   // Rebuild in new mode
   const gameData = getGameData();
@@ -579,6 +578,7 @@ function toggleViewMode(context) {
   } else {
     const gridId = context === 'player' ? 'characterGrid' : 'opponentGrid';
     buildRosterGrid(gridId, chars, currentTurn, onSel, unlock);
+    setupGridWheel(gridId);
   }
 }
 
@@ -592,9 +592,9 @@ function applyViewMode(context) {
   gridEl.style.display     = mode === 'list' ? '' : 'none';
   carouselEl.style.display = mode === 'carousel' ? '' : 'none';
   if (toggleBtn) {
-    toggleBtn.textContent = mode === 'list' ? '◎ Carousel' : '⊞ Liste';
-    toggleBtn.style.color       = mode === 'carousel' ? 'var(--orange)' : '';
-    toggleBtn.style.borderColor = mode === 'carousel' ? 'var(--orange)' : '';
+    toggleBtn.textContent = mode === 'list' ? '◎ Vue carousel' : '⊞ Vue liste';
+    toggleBtn.style.color       = '';
+    toggleBtn.style.borderColor = '';
   }
 }
 
