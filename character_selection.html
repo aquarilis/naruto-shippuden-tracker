@@ -434,30 +434,13 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
     const card = document.createElement('div');
     card.className = 'carousel-card' + (available ? '' : ' cc-unavailable');
     card.dataset.index = i;
+    card.style.pointerEvents = 'none'; // clicks handled at stage level
 
     const img = document.createElement('img');
     img.src = c.roster_image ? `img/roster/${c.roster_image}` : '';
     img.alt = c.name;
     img.loading = 'lazy';
     card.appendChild(img);
-
-    card.addEventListener('click', () => {
-      if (cs.index === i) {
-        // Center card tapped — select if available
-        if (available) {
-          cs.selected = c;
-          onSelect(c);
-          updateCarouselInfo(context, c, available, currentTurn);
-          // Mark as selected visually
-          stage.querySelectorAll('.carousel-card').forEach(el => el.classList.remove('cc-selected'));
-          card.classList.add('cc-selected');
-        }
-      } else {
-        // Non-center card tapped — navigate to it
-        carouselGoTo(context, i);
-      }
-    });
-
     stage.appendChild(card);
 
     // Dot
@@ -467,6 +450,37 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
     dot.addEventListener('click', () => carouselGoTo(context, i));
     dotsEl.appendChild(dot);
   });
+
+  // Single click handler on stage — find nearest card to click x position
+  stage.onclick = e => {
+    const stageRect = stage.getBoundingClientRect();
+    const clickX = e.clientX - stageRect.left - stageRect.width / 2;
+    const cards = stage.querySelectorAll('.carousel-card');
+    let nearest = cs.index, minDist = Infinity;
+    cards.forEach((card, i) => {
+      const offset = i - cs.index;
+      const cardX = offset * CAROUSEL_CFG.spread;
+      const dist = Math.abs(clickX - cardX);
+      if (dist < minDist) { minDist = dist; nearest = i; }
+    });
+    if (nearest !== cs.index) carouselGoTo(context, nearest);
+    const c = cs.items[nearest];
+    const available = forceUnlock || isAvailable(c, currentTurn);
+    cards.forEach(el => el.classList.remove('cc-selected'));
+    if (available) {
+      cs.selected = c;
+      onSelect(c);
+      updateCarouselInfo(context, c, available, currentTurn);
+      cards[nearest].classList.add('cc-selected');
+    } else {
+      // Deselect — unavailable card clicked
+      cs.selected = null;
+      const btn = document.getElementById(context === 'player' ? 'nextBtn' : 'startBtn');
+      btn.disabled = true; btn.style.opacity = '0.4';
+      if (context === 'player') selectedCharacter = null;
+      else selectedOpponent = null;
+    }
+  };
 
   carouselRender(context);
   setupCarouselSwipe(context);
