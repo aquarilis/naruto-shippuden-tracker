@@ -66,15 +66,31 @@ body { padding: 16px 14px 32px; }
   background: rgba(255,255,255,0.06);
   border-radius: 10px;
   overflow: hidden;
+  display: flex;
 }
 .bar-fill {
   height: 100%;
-  border-radius: 10px;
+  border-radius: 10px 0 0 10px;
   transition: width 0.45s cubic-bezier(.4,0,.2,1);
-  min-width: 2px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+/* When no overflow, restore right border-radius */
+.bar-fill:last-child { border-radius: 10px; }
+.bar-over {
+  height: 100%;
+  border-radius: 0 10px 10px 0;
+  transition: width 0.45s cubic-bezier(.4,0,.2,1);
+  min-width: 0;
+  flex-shrink: 0;
+  /* separator line on the left */
+  box-shadow: inset 2px 0 0 rgba(0,0,0,0.35);
 }
 .bar-hp     { background: linear-gradient(90deg, var(--hp-dark),     var(--hp)); }
 .bar-chakra { background: linear-gradient(90deg, var(--chakra-dark), var(--chakra)); }
+/* Lighter overflow tints */
+.bar-hp-over     { background: color-mix(in srgb, var(--hp)     55%, #fff); }
+.bar-chakra-over { background: color-mix(in srgb, var(--chakra) 55%, #fff); }
 
 /* ── Round / Action indicators ── */
 .badge-row {
@@ -337,7 +353,7 @@ body { padding: 16px 14px 32px; }
             <span class="stat-max"> / <span id="dispMaxHP">–</span></span>
           </div>
         </div>
-        <div class="bar-track"><div class="bar-fill bar-hp" id="barHP"></div></div>
+        <div class="bar-track"><div class="bar-fill bar-hp" id="barHP"></div><div class="bar-over bar-hp-over" id="barHPOver" style="width:0;"></div></div>
       </div>
       <div class="stat">
         <div class="stat-head">
@@ -347,7 +363,7 @@ body { padding: 16px 14px 32px; }
             <span class="stat-max"> / <span id="dispMaxChakra">–</span></span>
           </div>
         </div>
-        <div class="bar-track"><div class="bar-fill bar-chakra" id="barChakra"></div></div>
+        <div class="bar-track"><div class="bar-fill bar-chakra" id="barChakra"></div><div class="bar-over bar-chakra-over" id="barChakraOver" style="width:0;"></div></div>
       </div>
     </div>
     <div id="playerImageWrap" style="display:none; align-self:stretch;">
@@ -494,19 +510,31 @@ function renderCombat() {
   document.getElementById('labelActions').textContent = `Action ${G.action}/3`;
   document.getElementById('actionLabel').textContent = G.action;
 
-  // HP — bar capped at 100% visually, number shows real value (can exceed max with renfort)
+  // HP — show overflow (above maxHP) as lighter segment on the right
   document.getElementById('dispHP').textContent = G.hp;
   document.getElementById('dispMaxHP').textContent = G.maxHP;
-  document.getElementById('barHP').style.width = Math.min(100, pct(G.hp, G.maxHP)) + '%';
+  {
+    const total = Math.max(G.hp, G.maxHP);
+    const basePct = pct(Math.min(G.hp, G.maxHP), total);
+    const overPct = G.hp > G.maxHP ? pct(G.hp - G.maxHP, total) : 0;
+    document.getElementById('barHP').style.width = basePct + '%';
+    document.getElementById('barHPOver').style.width = overPct + '%';
+  }
   if (_prevHP !== null && G.hp !== _prevHP) {
     flashBar('barHP', G.hp < _prevHP ? 'fx-damage' : 'fx-heal');
   }
   applyBlinkClass('barHP', G.hp / G.maxHP);
 
-  // Chakra — same logic
+  // Chakra — same overflow logic
   document.getElementById('dispChakra').textContent = G.chakra;
   document.getElementById('dispMaxChakra').textContent = G.maxChakra;
-  document.getElementById('barChakra').style.width = Math.min(100, pct(G.chakra, G.maxChakra)) + '%';
+  {
+    const total = Math.max(G.chakra, G.maxChakra);
+    const basePct = pct(Math.min(G.chakra, G.maxChakra), total);
+    const overPct = G.chakra > G.maxChakra ? pct(G.chakra - G.maxChakra, total) : 0;
+    document.getElementById('barChakra').style.width = basePct + '%';
+    document.getElementById('barChakraOver').style.width = overPct + '%';
+  }
   if (_prevChakra !== null && G.chakra !== _prevChakra) {
     flashBar('barChakra', G.chakra < _prevChakra ? 'fx-damage' : 'fx-heal');
   }
