@@ -224,6 +224,8 @@ body { padding: 16px 14px 32px; }
   </div>
 </div>
 
+<button type="button" class="btn btn-orange" onclick="startNewTurn()">Commencer un nouveau tour</button>
+
 <div class="history">
   <div class="history-label">Historique des tours</div>
   <div class="history-list" id="historyList">
@@ -231,7 +233,6 @@ body { padding: 16px 14px 32px; }
   </div>
 </div>
 
-<button type="button" class="btn btn-orange" onclick="startNewTurn()">Commencer un nouveau tour</button>
 <div style="display:flex; gap:10px;">
   <button type="button" class="btn btn-ghost" id="btnUndoTurn" onclick="openUndoModal()" style="flex:1;">↩ Annuler le dernier tour</button>
   <button type="button" class="btn btn-ghost" onclick="window.location.href='index.html'" style="flex:1;">Quitter la partie</button>
