@@ -251,6 +251,19 @@ body { padding: 16px 14px 32px; }
 
 
 /* ── Selected recap (step 2) ── */
+.confirm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid currentColor;
+  line-height: 1.5;
+}
+.confirm-badge-swap { color: var(--orange); }
+.confirm-badge-unlock { color: var(--chakra, #4a9eff); }
+
 .selected-summary {
   background: var(--card2);
   border: 1px solid var(--border);
@@ -551,6 +564,11 @@ body { padding: 16px 14px 32px; }
       <div style="display:inline-block; border-radius:12px; border:2px solid var(--orange); overflow:hidden; max-width:100%;">
         <img id="confirmPlayerImg" src="" alt="" style="display:block; width:100%; height:auto; max-height:400px; object-fit:contain;">
       </div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; margin-top:8px;">
+        <div id="confirmPlayerName" style="font-weight:700; font-size:0.95rem;"></div>
+        <div id="confirmPlayerBadges" style="display:flex; gap:4px;"></div>
+      </div>
+      <div id="confirmPlayerStats" style="font-size:0.78rem; color:var(--muted); margin-top:2px;"></div>
     </div>
     <div style="display:flex; align-items:center; padding-top:90px; font-size:1.5rem; font-weight:900; color:var(--muted); flex-shrink:0;">VS</div>
     <div style="text-align:center; flex:1; min-width:0;">
@@ -558,6 +576,11 @@ body { padding: 16px 14px 32px; }
       <div style="display:inline-block; border-radius:12px; border:2px solid var(--hp); overflow:hidden; max-width:100%;">
         <img id="confirmOpponentImg" src="" alt="" style="display:block; width:100%; height:auto; max-height:400px; object-fit:contain;">
       </div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; margin-top:8px;">
+        <div id="confirmOpponentName" style="font-weight:700; font-size:0.95rem;"></div>
+        <div id="confirmOpponentBadges" style="display:flex; gap:4px;"></div>
+      </div>
+      <div id="confirmOpponentStats" style="font-size:0.78rem; color:var(--muted); margin-top:2px;"></div>
     </div>
   </div>
 
@@ -1173,14 +1196,43 @@ function syncCarouselSelection(context) {
   else selectedOpponent = available ? c : null;
 }
 
+function makeBadges(c, swapped, unlocked, currentTurn) {
+  const badges = [];
+  if (swapped) badges.push({ cls: 'confirm-badge-swap', text: '⇄' });
+  if (unlocked && !isAvailable(c, currentTurn, false)) badges.push({ cls: 'confirm-badge-unlock', text: '🔓' });
+  return badges;
+}
+
+function renderBadges(containerId, badges) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  badges.forEach(b => {
+    const span = document.createElement('span');
+    span.className = `confirm-badge ${b.cls}`;
+    span.textContent = b.text;
+    el.appendChild(span);
+  });
+}
+
 function goToConfirm() {
   syncCarouselSelection('player');
   syncCarouselSelection('opponent');
   if (!selectedCharacter || !selectedOpponent) return;
+
+  const currentTurn = getGameData().turns.length + 1;
+
   document.getElementById('confirmPlayerImg').src = selectedCharacter.roster_image
     ? `img/roster/${selectedCharacter.roster_image}` : '';
+  document.getElementById('confirmPlayerName').textContent = selectedCharacter.display_name;
+  document.getElementById('confirmPlayerStats').textContent = formatStats(selectedCharacter);
+  renderBadges('confirmPlayerBadges', makeBadges(selectedCharacter, playerSwapped, unlockPlayer, currentTurn));
+
   document.getElementById('confirmOpponentImg').src = selectedOpponent.roster_image
     ? `img/roster/${selectedOpponent.roster_image}` : '';
+  document.getElementById('confirmOpponentName').textContent = selectedOpponent.display_name;
+  document.getElementById('confirmOpponentStats').textContent = formatStats(selectedOpponent);
+  renderBadges('confirmOpponentBadges', makeBadges(selectedOpponent, opponentSwapped, unlockOpponent, currentTurn));
+
   document.getElementById('step2Screen').classList.add('hidden');
   document.getElementById('step3Screen').classList.remove('hidden');
   window.scrollTo(0, 0);
