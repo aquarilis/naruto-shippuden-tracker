@@ -304,18 +304,44 @@ body { padding: 16px 14px 32px; }
   border-radius: 12px;
   border: 2px solid var(--border);
   background: var(--card);
-  overflow: hidden;
   transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s ease, border-color 0.2s;
   will-change: transform, opacity;
   user-select: none;
   -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cc-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  line-height: 0;
 }
 
 .carousel-card img {
   display: block;
-  height: 300px;
+  height: 270px;
   width: auto;
   pointer-events: none;
+}
+
+.cc-tour-label {
+  width: 100%;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--blue, #4a9eff);
+  padding: 5px 8px 6px;
+  background: var(--card);
+  border-radius: 0 0 10px 10px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.carousel-card.cc-unavailable .cc-tour-label {
+  color: var(--muted);
 }
 
 .carousel-card.cc-center {
@@ -422,7 +448,6 @@ body { padding: 16px 14px 32px; }
     </div>
     <div class="carousel-info" id="characterCarouselInfo">
       <div class="carousel-info-name" id="characterCarouselName">—</div>
-      <div class="carousel-info-unavail" id="characterCarouselUnavail"></div>
       <div class="carousel-info-stats" id="characterCarouselStats"></div>
     </div>
     <div class="carousel-dots" id="characterCarouselDots"></div>
@@ -492,7 +517,6 @@ body { padding: 16px 14px 32px; }
     </div>
     <div class="carousel-info" id="opponentCarouselInfo">
       <div class="carousel-info-name" id="opponentCarouselName">—</div>
-      <div class="carousel-info-unavail" id="opponentCarouselUnavail"></div>
       <div class="carousel-info-stats" id="opponentCarouselStats"></div>
     </div>
     <div class="carousel-dots" id="opponentCarouselDots"></div>
@@ -613,28 +637,38 @@ function buildCarousel(context, characters, currentTurn, onSelect, forceUnlock) 
     card.dataset.index = i;
     card.style.pointerEvents = 'none';
 
+    const frame = document.createElement('div');
+    frame.className = 'cc-frame';
+
     const img = document.createElement('img');
     img.src = c.roster_image ? `img/roster/${c.roster_image}` : '';
     img.alt = c.display_name;
     img.loading = 'lazy';
-    card.appendChild(img);
+    frame.appendChild(img);
 
     if (sameAsPlayer) {
       const overlay = document.createElement('div');
       overlay.className = 'cc-chosen-overlay';
       overlay.innerHTML = '<span class="chosen-icon">🔒</span><span class="chosen-label">Déjà choisi</span>';
-      card.appendChild(overlay);
+      frame.appendChild(overlay);
     } else if (defeated) {
       const overlay = document.createElement('div');
       overlay.className = 'cc-defeated-overlay';
       overlay.innerHTML = '<span class="defeated-x">💀</span><span class="defeated-label">Vaincu(e)</span>';
-      card.appendChild(overlay);
+      frame.appendChild(overlay);
     } else if (notYet) {
       const overlay = document.createElement('div');
       overlay.className = 'cc-pending-overlay';
       overlay.innerHTML = '<span class="pending-icon">⏳</span><span class="pending-label">Indisponible\npour l\'instant</span>';
-      card.appendChild(overlay);
+      frame.appendChild(overlay);
     }
+
+    card.appendChild(frame);
+
+    const tourLabel = document.createElement('div');
+    tourLabel.className = 'cc-tour-label';
+    tourLabel.textContent = availabilityLabel(c);
+    card.appendChild(tourLabel);
 
     stage.appendChild(card);
 
@@ -766,10 +800,10 @@ function updateCarouselInfo(context, c, available, currentTurn, sameAsPlayer) {
   const defeated = !unlock && isDefeated(c);
   document.getElementById(`${prefix}CarouselName`).textContent = c.display_name;
   document.getElementById(`${prefix}CarouselStats`).textContent =
-    available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP` : '';
-  document.getElementById(`${prefix}CarouselUnavail`).textContent =
-    sameAsPlayer ? `Déjà choisi · ${availabilityLabel(c)}`
-    : defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
+    available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`
+    : sameAsPlayer ? 'Déjà choisi'
+    : defeated ? 'Vaincu(e)'
+    : '';
 }
 
 function setupCarouselSwipe(context) {
