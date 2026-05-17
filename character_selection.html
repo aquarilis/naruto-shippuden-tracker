@@ -359,6 +359,14 @@ body { padding: 16px 14px 32px; }
   filter: grayscale(1) brightness(0.4);
 }
 
+.stats-toggle-btn {
+  margin-top: 6px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  line-height: 1.3;
+  width: auto;
+  opacity: 0.7;
+}
 .carousel-info {
   text-align: center;
   padding: 6px 0 14px;
@@ -426,6 +434,7 @@ body { padding: 16px 14px 32px; }
       <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
       <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
       <button type="button" class="btn btn-ghost" id="viewTogglePlayer" onclick="toggleViewMode('player')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Vue carousel</button>
+      <button type="button" class="btn btn-ghost" id="statsToggleBtn" onclick="toggleStats()" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">👁 Stats</button>
     </div>
   </div>
 
@@ -437,7 +446,6 @@ body { padding: 16px 14px 32px; }
   <div class="roster-grid" id="characterGrid"></div>
   <div id="characterListInfo" style="display:none; text-align:center; padding: 8px 0 4px; line-height:1.6;">
     <div id="characterListName" style="font-weight:600; font-size:0.95rem;"></div>
-    <div id="characterListAvail" style="font-size:0.75rem; color:var(--muted);"></div>
     <div id="characterListStats" style="font-size:0.8rem; color:var(--muted);"></div>
   </div>
 
@@ -495,6 +503,7 @@ body { padding: 16px 14px 32px; }
       <button type="button" class="btn btn-ghost unlock-btn" onclick="openUnlockModal('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">🔓 Débloquer tous les personnages</button>
       <button type="button" class="btn btn-ghost swap-btn" onclick="swapRoster('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">⇄ Changer de camp</button>
       <button type="button" class="btn btn-ghost" id="viewToggleOpponent" onclick="toggleViewMode('opponent')" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">◎ Vue carousel</button>
+      <button type="button" class="btn btn-ghost" id="statsToggleBtn2" onclick="toggleStats()" style="margin:0; padding:4px 10px; font-size:0.72rem; line-height:1.2; width:auto;">👁 Stats</button>
     </div>
   </div>
 
@@ -506,7 +515,6 @@ body { padding: 16px 14px 32px; }
   <div class="roster-grid" id="opponentGrid"></div>
   <div id="opponentListInfo" style="display:none; text-align:center; padding: 8px 0 4px; line-height:1.6;">
     <div id="opponentListName" style="font-weight:600; font-size:0.95rem;"></div>
-    <div id="opponentListAvail" style="font-size:0.75rem; color:var(--muted);"></div>
     <div id="opponentListStats" style="font-size:0.8rem; color:var(--muted);"></div>
   </div>
 
@@ -585,6 +593,7 @@ let selectedCharacter = null;
 let selectedOpponent = null;
 let unlockPlayer = false;
 let unlockOpponent = false;
+let showStats = false;
 let unlockContext = null; // 'player' or 'opponent'
 let playerSwapped = false;
 let opponentSwapped = false;
@@ -795,12 +804,35 @@ function carouselRender(context) {
 
 function updateCarouselInfo(context, c, available, currentTurn, sameAsPlayer) {
   const prefix = context === 'player' ? 'character' : 'opponent';
-  const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
-  const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
-  const defeated = !unlock && isDefeated(c);
   document.getElementById(`${prefix}CarouselName`).textContent = c.display_name;
-  document.getElementById(`${prefix}CarouselStats`).textContent =
-    available ? `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP` : '';
+  document.getElementById(`${prefix}CarouselStats`).textContent = showStats ? formatStats(c) : '';
+}
+
+function toggleStats() {
+  showStats = !showStats;
+  const label = showStats ? '👁 Stats ✓' : '👁 Stats';
+  document.querySelectorAll('#statsToggleBtn, #statsToggleBtn2').forEach(b => b.textContent = label);
+
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+
+  // Refresh carousel info for both contexts
+  ['player', 'opponent'].forEach(context => {
+    const cs = carouselState[context];
+    if (cs && cs.items.length && viewModes[context] === 'carousel') {
+      const c = cs.items[cs.index];
+      const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
+      const sameAsPlayer = context === 'opponent' && isSameAsPlayer(c);
+      const available = !sameAsPlayer && isAvailable(c, currentTurn, unlock);
+      updateCarouselInfo(context, c, available, currentTurn, sameAsPlayer);
+    }
+    // Refresh list info
+    const prefix = context === 'player' ? 'character' : 'opponent';
+    const listStats = document.getElementById(`${prefix}ListStats`);
+    if (listStats && listStats.dataset.statsText) {
+      listStats.textContent = showStats ? listStats.dataset.statsText : '';
+    }
+  });
 }
 
 function setupCarouselSwipe(context) {
@@ -960,6 +992,11 @@ function getDefeatedNames(gameData) {
   return names;
 }
 
+function formatStats(c) {
+  const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
+  return `💙 ${totalChakra} PC · ❤️ ${c.hp} PV · ⭐ ${c.xp ?? 0} XP`;
+}
+
 function isDefeated(c) {
   return defeatedNames.has(c.display_name);
 }
@@ -1087,9 +1124,9 @@ function onCharacterSelect(c, card, gridId) {
     const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
     const defeated = !unlockPlayer && isDefeated(c);
     document.getElementById('characterListName').textContent = c.display_name;
-    document.getElementById('characterListAvail').textContent =
-      defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
-    document.getElementById('characterListStats').textContent = `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`;
+    const listStats = document.getElementById('characterListStats');
+    listStats.dataset.statsText = formatStats(c);
+    listStats.textContent = showStats ? formatStats(c) : '';
     document.getElementById('characterListInfo').style.display = '';
   }
   const nextBtn = document.getElementById('nextBtn');
@@ -1112,8 +1149,9 @@ function onOpponentSelect(c, card, gridId) {
     const availLabel = sameAsPlayer ? `Déjà choisi · ${availabilityLabel(c)}`
       : defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
     document.getElementById('opponentListName').textContent = c.display_name;
-    document.getElementById('opponentListAvail').textContent = availLabel;
-    document.getElementById('opponentListStats').textContent = `❤️ ${c.hp} PV · 💙 ${totalChakra} PC · ⭐ ${c.xp ?? 0} XP`;
+    const listStats = document.getElementById('opponentListStats');
+    listStats.dataset.statsText = formatStats(c);
+    listStats.textContent = showStats ? formatStats(c) : '';
     document.getElementById('opponentListInfo').style.display = '';
   }
   const startBtn = document.getElementById('startBtn');
@@ -1224,8 +1262,7 @@ function goToStep2() {
   document.getElementById('summaryImg').src = selectedCharacter.roster_image
     ? `img/roster/${selectedCharacter.roster_image}` : '';
   document.getElementById('summaryName').textContent = selectedCharacter.display_name;
-  document.getElementById('summaryStats').textContent =
-    `❤️ ${selectedCharacter.hp} PV · 💙 ${totalChakra} PC · ⭐ ${selectedCharacter.xp ?? 0} XP`;
+  document.getElementById('summaryStats').textContent = formatStats(selectedCharacter);
 
   document.getElementById('step1Screen').classList.add('hidden');
   document.getElementById('step2Screen').classList.remove('hidden');
