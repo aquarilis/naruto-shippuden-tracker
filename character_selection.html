@@ -458,7 +458,6 @@ body { padding: 16px 14px 32px; }
   <!-- List view -->
   <div class="roster-grid" id="characterGrid"></div>
   <div id="characterListInfo" style="display:none; text-align:center; padding: 8px 0 4px; line-height:1.6;">
-    <div id="characterListName" style="font-weight:600; font-size:0.95rem;"></div>
     <div id="characterListStats" style="font-size:0.8rem; color:var(--muted);"></div>
   </div>
 
@@ -468,7 +467,6 @@ body { padding: 16px 14px 32px; }
       <div class="carousel-stage" id="characterCarouselStage"></div>
     </div>
     <div class="carousel-info" id="characterCarouselInfo">
-      <div class="carousel-info-name" id="characterCarouselName">—</div>
       <div class="carousel-info-stats" id="characterCarouselStats"></div>
     </div>
     <div class="carousel-dots" id="characterCarouselDots"></div>
@@ -527,7 +525,6 @@ body { padding: 16px 14px 32px; }
   <!-- List view -->
   <div class="roster-grid" id="opponentGrid"></div>
   <div id="opponentListInfo" style="display:none; text-align:center; padding: 8px 0 4px; line-height:1.6;">
-    <div id="opponentListName" style="font-weight:600; font-size:0.95rem;"></div>
     <div id="opponentListStats" style="font-size:0.8rem; color:var(--muted);"></div>
   </div>
 
@@ -537,7 +534,6 @@ body { padding: 16px 14px 32px; }
       <div class="carousel-stage" id="opponentCarouselStage"></div>
     </div>
     <div class="carousel-info" id="opponentCarouselInfo">
-      <div class="carousel-info-name" id="opponentCarouselName">—</div>
       <div class="carousel-info-stats" id="opponentCarouselStats"></div>
     </div>
     <div class="carousel-dots" id="opponentCarouselDots"></div>
@@ -827,7 +823,6 @@ function carouselRender(context) {
 
 function updateCarouselInfo(context, c, available, currentTurn, sameAsPlayer) {
   const prefix = context === 'player' ? 'character' : 'opponent';
-  document.getElementById(`${prefix}CarouselName`).textContent = c.display_name;
   document.getElementById(`${prefix}CarouselStats`).textContent = showStats ? formatStats(c) : '';
 }
 
@@ -1150,7 +1145,6 @@ function onCharacterSelect(c, card, gridId) {
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     const totalChakra = (c.mp || 0) + (c.extra_mp || 0);
     const defeated = !unlockPlayer && isDefeated(c);
-    document.getElementById('characterListName').textContent = c.display_name;
     const listStats = document.getElementById('characterListStats');
     listStats.dataset.statsText = formatStats(c);
     listStats.textContent = showStats ? formatStats(c) : '';
@@ -1175,7 +1169,6 @@ function onOpponentSelect(c, card, gridId) {
     const defeated = !unlockOpponent && isDefeated(c);
     const availLabel = sameAsPlayer ? `Déjà choisi · ${availabilityLabel(c)}`
       : defeated ? `Vaincu(e) · ${availabilityLabel(c)}` : availabilityLabel(c);
-    document.getElementById('opponentListName').textContent = c.display_name;
     const listStats = document.getElementById('opponentListStats');
     listStats.dataset.statsText = formatStats(c);
     listStats.textContent = showStats ? formatStats(c) : '';
