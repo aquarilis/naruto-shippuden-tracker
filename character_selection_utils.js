@@ -452,20 +452,18 @@ function swapRoster(context) {
   const currentTurn = gameData.turns.length + 1;
   if (context === 'player') {
     playerSwapped = !playerSwapped;
-    unlockPlayer = false;
     selectedCharacter = null;
     carouselState.player.selected = null;
     const nextBtn = document.getElementById('nextBtn');
     nextBtn.disabled = true; nextBtn.style.opacity = '';
-    buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, false);
+    buildView('player', getActiveRoster('player'), currentTurn, onCharacterSelect, unlockPlayer);
   } else {
     opponentSwapped = !opponentSwapped;
-    unlockOpponent = false;
     selectedOpponent = null;
     carouselState.opponent.selected = null;
     const startBtn = document.getElementById('startBtn');
     startBtn.disabled = true; startBtn.style.opacity = '';
-    buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, false);
+    buildView('opponent', getActiveRoster('opponent'), currentTurn, onOpponentSelect, unlockOpponent);
   }
   updateUnlockButtons();
   updateSwapButtons();
