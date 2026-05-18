@@ -20,44 +20,6 @@ h2 {
 }
 h2:first-of-type { margin-top: 0; }
 
-/* ── Stat bars (from combat.html) ── */
-.stat { margin-bottom: 0; }
-.stat-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 7px;
-}
-.stat-name {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.dot-hp     { background: var(--hp);     box-shadow: 0 0 6px var(--hp); }
-.dot-chakra { background: var(--chakra); box-shadow: 0 0 6px var(--chakra); }
-.stat-num { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.stat-max { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
-.bar-track {
-  height: 20px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.bar-fill {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 0.45s cubic-bezier(.4,0,.2,1);
-  min-width: 2px;
-}
-.bar-hp     { background: linear-gradient(90deg, var(--hp-dark),     var(--hp)); }
-.bar-chakra { background: linear-gradient(90deg, var(--chakra-dark), var(--chakra)); }
-
 /* ── Effect card layout ── */
 .effect-card {
   background: var(--card);

@@ -5,40 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Naruto — Choix du Camp</title>
 <link rel="stylesheet" href="style.css">
-<style>
-body { padding: 16px 14px 32px; }
-
-/* ── Camp cards ── */
-.cards-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.card {
-  flex: 1 1 180px; /* grow, shrink, but never narrower than 180px */
-  max-width: 320px;
-  cursor: pointer;
-  transition: transform 0.08s, border-color 0.12s;
-  text-align: center;
-}
-
-.card:active { transform: scale(0.97); }
-
-.card img {
-  width: auto;
-  height: 120px;
-  margin-bottom: 12px;
-  object-fit: contain;
-}
-
-.card-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text);
-}
-</style>
 </head>
 <body>
 
@@ -51,27 +17,19 @@ body { padding: 16px 14px 32px; }
 </div>
 
 <div class="cards-row">
-  <div class="card" onclick="selectTeam('shinobi')">
+  <div class="camp-card" onclick="selectTeam('shinobi')">
     <img src="img/alliance_shinobi.svg" alt="Alliance Shinobi">
-    <div class="card-title">Alliance Shinobi</div>
+    <div class="camp-card-title">Alliance Shinobi</div>
   </div>
 
-  <div class="card" onclick="selectTeam('akatsuki')">
+  <div class="camp-card" onclick="selectTeam('akatsuki')">
     <img src="img/akatsuki.svg" alt="Akatsuki">
-    <div class="card-title">Akatsuki</div>
+    <div class="camp-card-title">Akatsuki</div>
   </div>
 </div>
 
-<script>
-function selectTeam(team) {
-  // Initialize game data in sessionStorage
-  const gameData = { team, turns: [] };
-  sessionStorage.setItem('gameData', JSON.stringify(gameData));
-
-  // Redirect to game tracker
-  window.location.href = 'game_tracker.html';
-}
-</script>
+<script src="common_utils.js"></script>
+<script src="team_selection_utils.js"></script>
 
 </body>
 </html>
