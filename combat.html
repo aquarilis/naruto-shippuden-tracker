@@ -178,7 +178,7 @@
         <label><span class="icon">💙</span> Coût en chakra</label>
         <div class="stepper">
           <button onclick="step('inputChakra', -1)">−</button>
-          <input type="number" id="inputChakra" value="0" min="0" inputmode="numeric">
+          <input type="number" id="inputChakra" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
           <button onclick="step('inputChakra', 1)">+</button>
         </div>
       </div>
@@ -188,7 +188,7 @@
         <label><span class="icon">❤️</span> Dégâts reçus</label>
         <div class="stepper">
           <button onclick="step('inputDmg', -1)">−</button>
-          <input type="number" id="inputDmg" value="0" min="0" inputmode="numeric">
+          <input type="number" id="inputDmg" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
           <button onclick="step('inputDmg', 1)">+</button>
         </div>
       </div>
@@ -214,7 +214,7 @@
         <label><span class="icon">❤️</span> PV récupérés</label>
         <div class="stepper">
           <button onclick="step('renforcementHeal', -1)">−</button>
-          <input type="number" id="renforcementHeal" value="0" min="0" inputmode="numeric">
+          <input type="number" id="renforcementHeal" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
           <button onclick="step('renforcementHeal', 1)">+</button>
         </div>
       </div>
@@ -222,7 +222,7 @@
         <label><span class="icon">💙</span> PC récupérés</label>
         <div class="stepper">
           <button onclick="step('renforcementChakra', -1)">−</button>
-          <input type="number" id="renforcementChakra" value="0" min="0" inputmode="numeric">
+          <input type="number" id="renforcementChakra" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
           <button onclick="step('renforcementChakra', 1)">+</button>
         </div>
       </div>
@@ -257,7 +257,7 @@
         <label>🎯 XP de la mission</label>
         <div class="stepper">
           <button onclick="step('xpMission', -1)">−</button>
-          <input type="number" id="xpMission" value="0" min="0" inputmode="numeric">
+          <input type="number" id="xpMission" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
           <button onclick="step('xpMission', 1)">+</button>
         </div>
       </div>
@@ -265,7 +265,7 @@
         <label>📋 XP de mission(s) secondaire(s)</label>
         <div class="stepper">
           <button onclick="step('xpSecondary', -1)">−</button>
-          <input type="number" id="xpSecondary" value="0" min="0" inputmode="numeric">
+          <input type="number" id="xpSecondary" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
           <button onclick="step('xpSecondary', 1)">+</button>
         </div>
       </div>

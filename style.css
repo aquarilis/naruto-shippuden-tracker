@@ -1103,6 +1103,13 @@ body.page-combat .btn-ghost { padding: 11px; }
   padding: 10px 0;
   appearance: none;
   -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* ── Chakra warning ── */

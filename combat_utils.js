@@ -378,3 +378,16 @@ function initFromURL() {
 }
 
 window.addEventListener('load', initFromURL);
+
+// ── Stepper inputs: clear zero on focus, restore on blur ──
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.stepper input[type="number"]').forEach(input => {
+    if (input.readOnly) return;
+    input.addEventListener('focus', () => {
+      if (input.value === '0') input.value = '';
+    });
+    input.addEventListener('blur', () => {
+      if (input.value === '' || isNaN(parseInt(input.value))) input.value = '0';
+    });
+  });
+});
