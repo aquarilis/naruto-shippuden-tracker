@@ -17,8 +17,8 @@ const viewModes = { player: _sharedMode, opponent: _sharedMode };
 
 // carousel state per context
 const carouselState = {
-  player:   { items: [], index: 0, selected: null },
-  opponent: { items: [], index: 0, selected: null }
+  player:   { items: [], index: 0, floatIndex: 0, momentum: null, selected: null },
+  opponent: { items: [], index: 0, floatIndex: 0, momentum: null, selected: null }
 };
 
 const CAROUSEL_CFG = {
@@ -141,8 +141,7 @@ function carouselGoTo(context, index) {
   carouselRender(context);
 }
 
-function carouselRender(context) {
-  const cs = carouselState[context];
+function carouselRenderVisual(context, floatIdx) {
   const stageId = context === 'player' ? 'characterCarouselStage' : 'opponentCarouselStage';
   const dotsId  = context === 'player' ? 'characterCarouselDots'  : 'opponentCarouselDots';
   const stage = document.getElementById(stageId);
@@ -151,27 +150,40 @@ function carouselRender(context) {
   const cfg = CAROUSEL_CFG;
   const cards = stage.querySelectorAll('.carousel-card');
   const dots  = document.getElementById(dotsId).querySelectorAll('.carousel-dot');
-  const gameData = getGameData();
-  const currentTurn = gameData.turns.length + 1;
-  const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
+  const nearestIdx = Math.round(floatIdx);
 
   cards.forEach((card, i) => {
-    const offset = i - cs.index;
+    const offset = i - floatIdx;
     const absOffset = Math.abs(offset);
     const x = offset * cfg.spread;
     const z = -absOffset * cfg.zStep;
     const ry = -offset * cfg.rotY;
     const scale = Math.max(0.35, 1 - absOffset * cfg.scaleStep);
     const opacity = Math.max(0.1, 1 - absOffset * cfg.opacityStep);
-    const zIndex = 100 - absOffset;
+    const zIndex = 100 - Math.floor(absOffset);
 
     card.style.transform = `translateX(${x}px) translateZ(${z}px) rotateY(${ry}deg) scale(${scale})`;
     card.style.opacity = opacity;
     card.style.zIndex = zIndex;
-    card.classList.toggle('cc-center', offset === 0);
+    card.classList.toggle('cc-center', i === nearestIdx);
   });
 
-  dots.forEach((dot, i) => dot.classList.toggle('active', i === cs.index));
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === nearestIdx));
+}
+
+function carouselRender(context) {
+  const cs = carouselState[context];
+  const stageId = context === 'player' ? 'characterCarouselStage' : 'opponentCarouselStage';
+  const stage = document.getElementById(stageId);
+  if (!stage) return;
+
+  cs.floatIndex = cs.index;
+  carouselRenderVisual(context, cs.index);
+
+  const cards = stage.querySelectorAll('.carousel-card');
+  const gameData = getGameData();
+  const currentTurn = gameData.turns.length + 1;
+  const unlock = context === 'player' ? unlockPlayer : unlockOpponent;
 
   const c = cs.items[cs.index];
   if (c) {
@@ -244,14 +256,85 @@ function setupCarouselSwipe(context) {
   const wrap = document.getElementById(wrapId);
   if (wrap._swipeBound) return;
   wrap._swipeBound = true;
-  let touchStartX = null;
-  let touchStartY = null;
-  let lockAxis = null;
+
+  let touchStartX    = null;
+  let touchStartY    = null;
+  let touchStartIdx  = 0;
+  let touchLastX     = null;
+  let touchLastTime  = null;
+  let lockAxis       = null;
+  let velocityX      = 0;    // cards/sec (positive = rightward = decreasing index)
+
+  const VELOCITY_CAP    = 18;   // max cards/sec
+  const MOMENTUM_THRESH = 1.5;  // min cards/sec to trigger momentum
+  const DECAY           = 0.97; // velocity multiplier per frame (~60fps)
+
+  function setCardTransitions(stageId, enabled) {
+    const stage = document.getElementById(stageId);
+    if (!stage) return;
+    stage.querySelectorAll('.carousel-card').forEach(card => {
+      card.style.transition = enabled ? '' : 'none';
+    });
+  }
+
+  function snapAndSelect() {
+    const cs = carouselState[context];
+    if (cs.momentum) {
+      cancelAnimationFrame(cs.momentum);
+      cs.momentum = null;
+    }
+    const stageId = context === 'player' ? 'characterCarouselStage' : 'opponentCarouselStage';
+    setCardTransitions(stageId, true);
+    cs.index = Math.round(Math.max(0, Math.min(cs.items.length - 1, cs.floatIndex)));
+    cs.floatIndex = cs.index;
+    carouselRender(context);
+  }
+
+  function launchMomentum(vel) {
+    const cs = carouselState[context];
+    const stageId = context === 'player' ? 'characterCarouselStage' : 'opponentCarouselStage';
+    setCardTransitions(stageId, false);
+
+    let lastTime = performance.now();
+
+    function frame(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      vel *= Math.pow(DECAY, dt * 60);
+      cs.floatIndex += vel * dt;
+      cs.floatIndex = Math.max(0, Math.min(cs.items.length - 1, cs.floatIndex));
+
+      carouselRenderVisual(context, cs.floatIndex);
+
+      const atEdge = cs.floatIndex <= 0 || cs.floatIndex >= cs.items.length - 1;
+      if (Math.abs(vel) > 0.15 && !atEdge) {
+        cs.momentum = requestAnimationFrame(frame);
+      } else {
+        snapAndSelect();
+      }
+    }
+
+    cs.momentum = requestAnimationFrame(frame);
+  }
 
   wrap.ontouchstart = e => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    lockAxis = null;
+    const cs = carouselState[context];
+    if (cs.momentum) {
+      snapAndSelect();
+      // absorb this touch — don't start a new drag
+      touchStartX = null;
+      return;
+    }
+    const stageId = context === 'player' ? 'characterCarouselStage' : 'opponentCarouselStage';
+    setCardTransitions(stageId, false);
+    touchStartX   = e.touches[0].clientX;
+    touchStartY   = e.touches[0].clientY;
+    touchStartIdx = cs.floatIndex;
+    touchLastX    = touchStartX;
+    touchLastTime = performance.now();
+    lockAxis      = null;
+    velocityX     = 0;
   };
 
   wrap.addEventListener('touchmove', e => {
@@ -262,18 +345,37 @@ function setupCarouselSwipe(context) {
       lockAxis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
       if (lockAxis === 'h') window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
-    if (lockAxis === 'h') e.preventDefault();
+    if (lockAxis === 'h') {
+      e.preventDefault();
+      const now = performance.now();
+      const dt  = (now - touchLastTime) / 1000;
+      if (dt > 0.008) {
+        const dxFromLast = e.touches[0].clientX - touchLastX;
+        velocityX  = Math.max(-VELOCITY_CAP, Math.min(VELOCITY_CAP, -(dxFromLast / CAROUSEL_CFG.spread) / dt));
+        touchLastX    = e.touches[0].clientX;
+        touchLastTime = now;
+      }
+      const cs = carouselState[context];
+      cs.floatIndex = Math.max(0, Math.min(cs.items.length - 1, touchStartIdx - dx / CAROUSEL_CFG.spread));
+      carouselRenderVisual(context, cs.floatIndex);
+    }
   }, { passive: false });
 
   wrap.ontouchend = e => {
     if (touchStartX === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (lockAxis === 'h' && Math.abs(dx) > 40) {
-      carouselGoTo(context, carouselState[context].index + (dx < 0 ? 1 : -1));
+    const stageId = context === 'player' ? 'characterCarouselStage' : 'opponentCarouselStage';
+    if (lockAxis === 'h') {
+      if (Math.abs(velocityX) > MOMENTUM_THRESH) {
+        launchMomentum(velocityX);
+      } else {
+        snapAndSelect();
+      }
+    } else {
+      setCardTransitions(stageId, true);
     }
     touchStartX = null;
     touchStartY = null;
-    lockAxis = null;
+    lockAxis    = null;
   };
 
   wrap.tabIndex = 0;
