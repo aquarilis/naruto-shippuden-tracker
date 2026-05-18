@@ -96,9 +96,14 @@ body { padding: 16px 14px 32px; }
   margin-left: 4px;
 }
 
+@media (max-width: 400px) {
+  .history-char-names { display: none; }
+}
+
 .history-char-img-wrap {
   position: relative;
   display: inline-block;
+  flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
   border: 2px solid var(--border);
@@ -106,8 +111,9 @@ body { padding: 16px 14px 32px; }
 
 .history-char-img-wrap img {
   display: block;
-  height: 64px;
+  height: 56px;
   width: auto;
+  max-width: none;
 }
 
 .history-char-img-wrap .loser-overlay {
