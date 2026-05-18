@@ -2,7 +2,7 @@
    Naruto Shippuden Tracker — Shared JS
    ══════════════════════════════════════ */
 
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.2';
 
 function getGameData() {
   return JSON.parse(sessionStorage.getItem('gameData')) || { team: null, turns: [] };
