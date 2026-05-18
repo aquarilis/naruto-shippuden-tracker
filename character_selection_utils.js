@@ -338,12 +338,14 @@ function setupCarouselSwipe(context) {
   };
 
   wrap.addEventListener('touchmove', e => {
-    if (touchStartX === null) return;
+    if (touchStartX === null) {
+      e.preventDefault(); // absorb scroll during momentum stop
+      return;
+    }
     const dx = e.touches[0].clientX - touchStartX;
     const dy = e.touches[0].clientY - touchStartY;
     if (!lockAxis) {
       lockAxis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
-      if (lockAxis === 'h') window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
     if (lockAxis === 'h') {
       e.preventDefault();
